@@ -37,7 +37,28 @@ export function DetailPanel({ line }: Props) {
 
       <div style={{ borderTop: "1px solid #2a2a4a", paddingTop: 10 }}>
         <Row label="Max bid" value={vnd(line.bid)} />
-        <Row label="Quality Score" value={`${line.quality_score.toFixed(1)} / 10`} />
+        <Row label="Quality Score" value={`${line.quality_score.toFixed(1)} / 10`} accent />
+
+        {(line.pctr > 0 || line.ad_relevance > 0 || line.lp_experience > 0) && (
+          <div
+            style={{
+              marginTop: 10,
+              padding: 10,
+              background: "#0c1426",
+              border: "1px solid #2a2a4a",
+              borderRadius: 6,
+            }}
+          >
+            <div style={{ color: "var(--text-dim)", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+              Quality Score breakdown
+            </div>
+            <Bar label="pCTR" value={line.pctr * 100} max={30} unit="%" digits={2} />
+            <Bar label="Ad relevance" value={line.ad_relevance} max={10} />
+            <Bar label="LP experience" value={line.lp_experience} max={10} />
+          </div>
+        )}
+
+        <div style={{ height: 10 }} />
         <Row
           label="Ad Rank"
           value={Math.round(line.ad_rank).toLocaleString("vi-VN")}
@@ -81,6 +102,36 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+function Bar({ label, value, max, unit, digits = 1 }: { label: string; value: number; max: number; unit?: string; digits?: number }) {
+  const pct = Math.max(0, Math.min(100, (value / max) * 100));
+  return (
+    <div style={{ marginBottom: 7 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+        <span style={{ color: "var(--text-dim)", fontSize: 11 }}>{label}</span>
+        <span style={{ fontSize: 11, fontFamily: "ui-monospace, monospace" }}>
+          {value.toFixed(digits)}{unit || ""}
+        </span>
+      </div>
+      <div
+        style={{
+          height: 4,
+          background: "#1a1a2e",
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: pct >= 70 ? "#4ade80" : pct >= 40 ? "#fbbf24" : "#ef4444",
+          }}
+        />
+      </div>
     </div>
   );
 }

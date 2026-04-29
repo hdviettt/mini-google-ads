@@ -10,7 +10,7 @@ import json
 import time
 from dataclasses import dataclass
 
-from matching.exact import find_matching_keywords
+from matching.dispatcher import find_all_matches
 from quality_score.baseline import baseline_quality_score
 from quality_score.aggregate import compute_quality_score, QualityScoreBreakdown
 from quality_score.ad_relevance import compute_ad_relevance
@@ -116,7 +116,7 @@ def run_auction(
 ) -> AuctionResponse:
     started = time.perf_counter()
 
-    matched = find_matching_keywords(conn, query)
+    matched = find_all_matches(conn, query)
 
     auction_id = 0
     query_id = 0

@@ -9,9 +9,8 @@ import {
 import { AdResult } from "@/components/AdResult";
 import { Explainer } from "@/components/Explainer";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { PipelineCanvas } from "@/components/canvas/PipelineCanvas";
-import { Playground } from "@/components/playground/Playground";
-import { SimulationPanel } from "@/components/panels/SimulationPanel";
+import { BusinessSide } from "@/components/BusinessSide";
+import { AlgorithmSide } from "@/components/AlgorithmSide";
 
 const SAMPLE_QUERIES = [
   "váy dự tiệc",
@@ -43,9 +42,6 @@ export default function Home() {
   const [selectedAdvertiserId, setSelectedAdvertiserId] = useState<number | null>(null);
   const [simulatedUserId, setSimulatedUserId] = useState<number | null>(null);
 
-  const [showCanvas, setShowCanvas] = useState(false);
-  const [showSimulation, setShowSimulation] = useState(false);
-
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -74,13 +70,11 @@ export default function Home() {
     [],
   );
 
-  // Auto-run once on mount
   useEffect(() => {
     doRun(query, {}, {}, simulatedUserId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced re-run when sliders / user changes
   useEffect(() => {
     if (!auction) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -100,11 +94,6 @@ export default function Home() {
     doRun(query, {}, {}, simulatedUserId);
   };
 
-  const selectedLine = useMemo(() => {
-    if (!auction || selectedAdvertiserId === null) return null;
-    return auction.lines.find((l) => l.advertiser_id === selectedAdvertiserId) ?? null;
-  }, [auction, selectedAdvertiserId]);
-
   const winners = useMemo(
     () => auction?.lines.filter((l) => l.slot_position !== null && l.slot_position !== undefined) ?? [],
     [auction],
@@ -116,16 +105,24 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <header className="sticky top-0 z-30 backdrop-blur border-b border-[var(--border)]"
-        style={{ background: "color-mix(in srgb, var(--bg) 88%, transparent)" }}>
+      <header
+        className="sticky top-0 z-30 backdrop-blur border-b border-[var(--border)]"
+        style={{ background: "color-mix(in srgb, var(--bg) 88%, transparent)" }}
+      >
         <div className="max-w-[920px] mx-auto px-5 py-3 flex items-center gap-4">
-          <h1 className="text-[15px] font-semibold tracking-tight">
-            Mini Google Ads
-          </h1>
-          <span className="text-[11px] text-[var(--text-dim)]">
-            auction sandbox
-          </span>
-          <div className="ml-auto flex items-center gap-3">
+          <h1 className="text-[15px] font-semibold tracking-tight">Mini Google Ads</h1>
+          <span className="text-[11px] text-[var(--text-dim)]">auction sandbox</span>
+          <nav className="ml-auto flex items-center gap-3">
+            <a href="#user" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)]">
+              User
+            </a>
+            <a href="#business" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)]">
+              Business
+            </a>
+            <a href="#algorithm" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)]">
+              Algorithm
+            </a>
+            <span className="w-px h-4 bg-[var(--border)]" />
             <Explainer />
             <a
               href="https://github.com/hdviettt/mini-google-ads"
@@ -136,16 +133,27 @@ export default function Home() {
               GitHub
             </a>
             <ThemeToggle />
-          </div>
+          </nav>
         </div>
       </header>
 
       <main className="max-w-[920px] mx-auto px-5 pb-24">
-        {/* Search */}
-        <section className="pt-8 pb-4 fade-in">
-          <p className="text-[13px] text-[var(--text-muted)] mb-2">
-            Type a search query. Watch advertisers compete for slots in a real-time auction.
-          </p>
+        {/* SECTION 1 — USER SIDE */}
+        <section id="user" className="pt-8 fade-in">
+          <div className="mb-5">
+            <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-1">
+              1 · Phía user
+            </div>
+            <h2 className="text-[18px] font-semibold text-[var(--text)] mb-2">
+              User search một thứ gì đó
+            </h2>
+            <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              Đây là toàn bộ trải nghiệm của user. Họ gõ truy vấn vào Google, thấy một loạt
+              kết quả "Sponsored" ở trên cùng. Họ không biết các nhãn hàng đã đấu giá, không
+              biết Quality Score, không biết GSP. Họ chỉ thấy quảng cáo và quyết định click.
+            </p>
+          </div>
+
           <form onSubmit={onSubmit} className="flex gap-2">
             <input
               type="text"
@@ -159,11 +167,10 @@ export default function Home() {
               disabled={loading}
               className="px-5 py-3 rounded-xl bg-[var(--text)] text-[var(--bg)] text-[14px] font-medium disabled:opacity-50"
             >
-              {loading ? "Running…" : "Run auction"}
+              {loading ? "Running…" : "Search"}
             </button>
           </form>
 
-          {/* Sample queries */}
           <div className="mt-3 flex flex-wrap gap-2 items-center">
             <span className="text-[11px] text-[var(--text-dim)]">Try:</span>
             {SAMPLE_QUERIES.map((q) => (
@@ -186,9 +193,8 @@ export default function Home() {
             ))}
           </div>
 
-          {/* User signal */}
           <div className="mt-2 flex flex-wrap gap-2 items-center">
-            <span className="text-[11px] text-[var(--text-dim)]">User signal:</span>
+            <span className="text-[11px] text-[var(--text-dim)]">User intent:</span>
             {USER_PRESETS.map((u) => (
               <button
                 key={u.label}
@@ -205,136 +211,96 @@ export default function Home() {
             ))}
           </div>
 
-          {error && (
-            <div className="mt-3 text-[12px] text-[var(--bad)]">error: {error}</div>
-          )}
-        </section>
+          {error && <div className="mt-3 text-[12px] text-[var(--bad)]">error: {error}</div>}
 
-        {/* Narration callout */}
-        {auction && auction.narration && (
-          <section className="pb-5 fade-in">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
+          {/* Narration callout — written for the user, not the algorithm */}
+          {auction && auction.narration && (
+            <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5 fade-in">
               <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
-                What happened
+                Người không biết Google Ads cũng đọc được
               </div>
               <p className="text-[14.5px] leading-relaxed text-[var(--text)]">
                 {auction.narration}
               </p>
-              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[var(--text-dim)]">
-                <span>matched: {auction.matched_count}</span>
-                <span>eligible: {auction.eligible_count}</span>
-                <span>slots filled: {auction.slot_count}</span>
-                <span>{auction.time_ms.toFixed(0)} ms</span>
-              </div>
             </div>
-          </section>
-        )}
+          )}
 
-        {/* Results */}
-        {auction && (
-          <section className="space-y-3 pb-8">
-            <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)]">
-              Sponsored results
+          {/* Sponsored results — what the user actually sees */}
+          {auction && (
+            <div className="mt-5 space-y-3">
+              <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)]">
+                Sponsored results · {winners.length} of {auction.lines.length} bidders shown
+              </div>
+              {winners.length === 0 ? (
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center text-[var(--text-muted)] text-[13px]">
+                  Không có nhãn hàng nào thắng slot cho truy vấn này.
+                </div>
+              ) : (
+                winners.map((line, idx) => (
+                  <AdResult
+                    key={line.advertiser_id}
+                    line={line}
+                    rank={idx + 1}
+                    selected={selectedAdvertiserId === line.advertiser_id}
+                    onSelect={() =>
+                      setSelectedAdvertiserId(
+                        selectedAdvertiserId === line.advertiser_id ? null : line.advertiser_id,
+                      )
+                    }
+                  />
+                ))
+              )}
             </div>
-            {winners.length === 0 ? (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center text-[var(--text-muted)] text-[13px]">
-                No advertisers won a slot for this query.
-              </div>
-            ) : (
-              winners.map((line, idx) => (
-                <AdResult
-                  key={line.advertiser_id}
-                  line={line}
-                  rank={idx + 1}
-                  selected={selectedAdvertiserId === line.advertiser_id}
-                  onSelect={() =>
-                    setSelectedAdvertiserId(
-                      selectedAdvertiserId === line.advertiser_id ? null : line.advertiser_id,
-                    )
-                  }
-                />
-              ))
-            )}
+          )}
+        </section>
 
-            {filtered.length > 0 && (
-              <div className="pt-3">
-                <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
-                  Filtered ({filtered.length}) — eligible but did not clear reserve
-                </div>
-                <div className="space-y-2 opacity-70">
-                  {filtered.map((line, idx) => (
-                    <AdResult
-                      key={line.advertiser_id}
-                      line={line}
-                      rank={winners.length + idx + 1}
-                      selected={selectedAdvertiserId === line.advertiser_id}
-                      onSelect={() =>
-                        setSelectedAdvertiserId(
-                          selectedAdvertiserId === line.advertiser_id ? null : line.advertiser_id,
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Playground (always visible when there's a result) */}
+        {/* Section divider */}
         {auction && auction.lines.length > 0 && (
-          <section className="pb-8">
-            <Playground
-              lines={auction.lines}
-              bidOverrides={bidOverrides}
-              qsOverrides={qsOverrides}
-              onBidChange={(id, v) => setBidOverrides((p) => ({ ...p, [id]: v }))}
-              onQsChange={(id, v) => setQsOverrides((p) => ({ ...p, [id]: v }))}
-              onReset={() => {
-                setBidOverrides({});
-                setQsOverrides({});
-                doRun(query, {}, {}, simulatedUserId);
-              }}
-            />
-          </section>
+          <div className="my-8 flex items-center gap-3 text-[var(--text-dim)] text-[11px] uppercase tracking-wider">
+            <div className="flex-1 h-px bg-[var(--separator)]" />
+            <span>Behind the scenes ↓</span>
+            <div className="flex-1 h-px bg-[var(--separator)]" />
+          </div>
         )}
 
-        {/* Pipeline canvas (advanced, collapsed by default) */}
-        <section className="pb-8">
-          <button
-            onClick={() => setShowCanvas((s) => !s)}
-            className="text-[12.5px] text-[var(--text-muted)] hover:text-[var(--text)] py-2"
-          >
-            {showCanvas ? "▾" : "▸"} {showCanvas ? "Hide" : "Show"} auction pipeline canvas
-          </button>
-          {showCanvas && (
-            <div className="mt-3 rounded-xl border border-[var(--border)] overflow-hidden" style={{ height: 560 }}>
-              <PipelineCanvas
-                auction={auction}
-                selectedAdvertiserId={selectedAdvertiserId}
-                onSelectAdvertiser={setSelectedAdvertiserId}
-              />
-            </div>
-          )}
-        </section>
+        {/* SECTION 2 — BUSINESS SIDE */}
+        {auction && <BusinessSide lines={auction.lines} query={auction.query} />}
 
-        {/* Simulation (advanced, collapsed by default) */}
-        <section className="pb-12">
-          <button
-            onClick={() => setShowSimulation((s) => !s)}
-            className="text-[12.5px] text-[var(--text-muted)] hover:text-[var(--text)] py-2"
-          >
-            {showSimulation ? "▾" : "▸"} {showSimulation ? "Hide" : "Show"} simulation panel
-          </button>
-          {showSimulation && (
-            <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)]">
-              <SimulationPanel />
-            </div>
-          )}
-        </section>
+        {/* Section divider */}
+        {auction && auction.lines.length > 0 && (
+          <div className="my-8 flex items-center gap-3 text-[var(--text-dim)] text-[11px] uppercase tracking-wider">
+            <div className="flex-1 h-px bg-[var(--separator)]" />
+            <span>Algorithm decides ↓</span>
+            <div className="flex-1 h-px bg-[var(--separator)]" />
+          </div>
+        )}
 
-        <footer className="border-t border-[var(--separator)] pt-4 text-[11px] text-[var(--text-dim)]">
-          Synthetic data, no real money. {advertisers ? `${advertisers.length} advertisers · ${advertisers.reduce((s, a) => s + a.keyword_count, 0)} keywords` : "loading…"}
+        {/* SECTION 3 — ALGORITHM SIDE */}
+        {auction && (
+          <AlgorithmSide
+            lines={auction.lines}
+            selectedAdvertiserId={selectedAdvertiserId}
+            onSelectAdvertiser={setSelectedAdvertiserId}
+            bidOverrides={bidOverrides}
+            qsOverrides={qsOverrides}
+            onBidChange={(id, v) => setBidOverrides((p) => ({ ...p, [id]: v }))}
+            onQsChange={(id, v) => setQsOverrides((p) => ({ ...p, [id]: v }))}
+            onResetOverrides={() => {
+              setBidOverrides({});
+              setQsOverrides({});
+              doRun(query, {}, {}, simulatedUserId);
+            }}
+          />
+        )}
+
+        <footer className="border-t border-[var(--separator)] pt-4 mt-12 text-[11px] text-[var(--text-dim)]">
+          Synthetic data, no real money.{" "}
+          {advertisers
+            ? `${advertisers.length} advertisers · ${advertisers.reduce(
+                (s, a) => s + a.keyword_count,
+                0,
+              )} keywords`
+            : "loading…"}
           {advertisersError && <span className="text-[var(--bad)]"> · API error: {advertisersError}</span>}
         </footer>
       </main>

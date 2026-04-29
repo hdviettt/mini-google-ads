@@ -46,6 +46,28 @@ export function Explainer() {
 
               <div>
                 <div className="text-[12px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
+                  Read it as three sides
+                </div>
+                <ul className="list-disc pl-5 space-y-1.5">
+                  <li>
+                    <span className="text-[var(--text)]">User side</span> — what
+                    the searcher sees. Just sponsored results.
+                  </li>
+                  <li>
+                    <span className="text-[var(--text)]">Business side</span> —
+                    each advertiser's keyword, bid, ad copy, Quality Score.
+                    What they set up before the user ever searched.
+                  </li>
+                  <li>
+                    <span className="text-[var(--text)]">Algorithm side</span> —
+                    Ad Rank table, GSP pricing table, the math Google ran in
+                    milliseconds.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <div className="text-[12px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
                   Four wrong intuitions this fixes
                 </div>
                 <ol className="list-decimal pl-5 space-y-1.5">

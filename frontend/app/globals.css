@@ -124,8 +124,36 @@ html, body {
 
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes grow-from-zero {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes slide-in-from-right {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes winner-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  50%      { box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.25); }
+}
+@keyframes counter-flash {
+  0%   { color: var(--ok); }
+  100% { color: inherit; }
+}
+@keyframes ticker-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
 
 .fade-in { animation: fade-in 0.25s ease-out both; }
+.bar-grow {
+  transform-origin: left center;
+  animation: grow-from-zero 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.cutoff-slide   { animation: slide-in-from-right 0.5s ease-out 0.7s both; }
+.winner-pulse-1 { animation: winner-pulse 1.4s ease-out 0.9s 1; }
+.counter-flash  { animation: counter-flash 0.6s ease-out; }
+.ticker-pulse   { animation: ticker-pulse 1.5s ease-in-out infinite; }
 
 /* React Flow night mode */
 [data-theme="dark"] .react-flow__background { background: var(--bg); }

@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { BusinessSide } from "@/components/BusinessSide";
 import { AlgorithmSide } from "@/components/AlgorithmSide";
 import { FlowDiagram } from "@/components/FlowDiagram";
+import { LiveStats } from "@/components/LiveStats";
 
 const SAMPLE_QUERIES = [
   "váy dự tiệc",
@@ -113,6 +114,9 @@ export default function Home() {
         <div className="max-w-[920px] mx-auto px-5 py-3 flex items-center gap-4">
           <h1 className="text-[15px] font-semibold tracking-tight">Mini Google Ads</h1>
           <span className="text-[11px] text-[var(--text-dim)]">auction sandbox</span>
+          <span className="hidden md:flex items-center pl-3 ml-1 border-l border-[var(--border)]">
+            <LiveStats />
+          </span>
           <nav className="ml-auto flex items-center gap-3">
             <a href="#user" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)]">
               User

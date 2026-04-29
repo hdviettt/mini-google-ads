@@ -153,30 +153,16 @@ export default function Home() {
               User search một thứ gì đó
             </h2>
             <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
-              Đây là toàn bộ trải nghiệm của user. Họ gõ truy vấn vào Google, thấy một loạt
-              kết quả "Sponsored" ở trên cùng. Họ không biết các nhãn hàng đã đấu giá, không
-              biết Quality Score, không biết GSP. Họ chỉ thấy quảng cáo và quyết định click.
+              Đây là toàn bộ trải nghiệm của user. Họ gõ truy vấn vào Google, thấy kết quả
+              "Sponsored" ở trên cùng. Họ không biết Quality Score, không biết GSP. Họ chỉ
+              thấy quảng cáo và quyết định click.
             </p>
           </div>
 
-          <form onSubmit={onSubmit} className="flex gap-2">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="váy dự tiệc"
-              className="flex-1 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)] text-[15px] outline-none focus:border-[var(--text)] transition-colors"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-3 rounded-xl bg-[var(--text)] text-[var(--bg)] text-[14px] font-medium disabled:opacity-50"
-            >
-              {loading ? "Running…" : "Search"}
-            </button>
-          </form>
-
-          <div className="mt-3 flex flex-wrap gap-2 items-center">
+          {/* Sample queries + intent above the SERP frame so the frame
+             stays visually pure (just like Google does not show your
+             history above its SERP). */}
+          <div className="mb-3 flex flex-wrap gap-2 items-center">
             <span className="text-[11px] text-[var(--text-dim)]">Try:</span>
             {SAMPLE_QUERIES.map((q) => (
               <button
@@ -197,8 +183,7 @@ export default function Home() {
               </button>
             ))}
           </div>
-
-          <div className="mt-2 flex flex-wrap gap-2 items-center">
+          <div className="mb-4 flex flex-wrap gap-2 items-center">
             <span className="text-[11px] text-[var(--text-dim)]">User intent:</span>
             {USER_PRESETS.map((u) => (
               <button
@@ -216,9 +201,109 @@ export default function Home() {
             ))}
           </div>
 
-          {error && <div className="mt-3 text-[12px] text-[var(--bad)]">error: {error}</div>}
+          {/* Google-fidelity SERP frame — always white, Roboto-ish,
+             Google blue links, sponsored badges. This is its own
+             visual world separate from the rest of the page. */}
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: 16,
+              border: "1px solid #dadce0",
+              padding: "20px 22px 24px",
+              fontFamily: "Roboto, arial, sans-serif",
+              color: "#202124",
+            }}
+          >
+            {/* Mini Google-style header inside the frame */}
+            <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 1, fontSize: 22, fontWeight: 500 }}>
+                <span style={{ color: "#4285f4" }}>G</span>
+                <span style={{ color: "#ea4335" }}>o</span>
+                <span style={{ color: "#fbbc04" }}>o</span>
+                <span style={{ color: "#4285f4" }}>g</span>
+                <span style={{ color: "#34a853" }}>l</span>
+                <span style={{ color: "#ea4335" }}>e</span>
+              </div>
+              <form onSubmit={onSubmit} style={{ flex: 1, display: "flex" }}>
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "9px 16px",
+                    borderRadius: 24,
+                    border: "1px solid #dfe1e5",
+                    background: "#fff",
+                    boxShadow: "0 1px 6px rgba(32,33,36,0.06)",
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa0a6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="váy dự tiệc"
+                    style={{
+                      flex: 1,
+                      border: 0,
+                      outline: 0,
+                      background: "transparent",
+                      fontSize: 15,
+                      color: "#202124",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                </div>
+              </form>
+            </div>
 
-          {/* Narration callout — written for the user, not the algorithm */}
+            {/* Result count line */}
+            {auction && (
+              <div style={{ fontSize: 12, color: "#70757a", marginBottom: 14 }}>
+                Khoảng {auction.lines.length.toLocaleString("vi-VN")} kết quả
+                {" · "}
+                {auction.time_ms.toFixed(0)} ms
+              </div>
+            )}
+
+            {error && (
+              <div style={{ fontSize: 13, color: "#c5221f", marginBottom: 12 }}>
+                error: {error}
+              </div>
+            )}
+
+            {/* Sponsored results */}
+            {auction && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {winners.length === 0 ? (
+                  <div style={{ fontSize: 14, color: "#5f6368", padding: "20px 0" }}>
+                    Không có nhãn hàng nào thắng slot cho truy vấn này.
+                  </div>
+                ) : (
+                  winners.map((line) => (
+                    <AdResult
+                      key={line.advertiser_id}
+                      line={line}
+                      selected={selectedAdvertiserId === line.advertiser_id}
+                      onSelect={() =>
+                        setSelectedAdvertiserId(
+                          selectedAdvertiserId === line.advertiser_id ? null : line.advertiser_id,
+                        )
+                      }
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Narration callout — written for the user, sits below the
+             SERP frame (outside the Google-fidelity world, back in our
+             palette) so it reads as our voice, not Google's. */}
           {auction && auction.narration && (
             <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5 fade-in">
               <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
@@ -227,34 +312,6 @@ export default function Home() {
               <p className="text-[14.5px] leading-relaxed text-[var(--text)]">
                 {auction.narration}
               </p>
-            </div>
-          )}
-
-          {/* Sponsored results — what the user actually sees */}
-          {auction && (
-            <div className="mt-5 space-y-3">
-              <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)]">
-                Sponsored results · {winners.length} of {auction.lines.length} bidders shown
-              </div>
-              {winners.length === 0 ? (
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center text-[var(--text-muted)] text-[13px]">
-                  Không có nhãn hàng nào thắng slot cho truy vấn này.
-                </div>
-              ) : (
-                winners.map((line, idx) => (
-                  <AdResult
-                    key={line.advertiser_id}
-                    line={line}
-                    rank={idx + 1}
-                    selected={selectedAdvertiserId === line.advertiser_id}
-                    onSelect={() =>
-                      setSelectedAdvertiserId(
-                        selectedAdvertiserId === line.advertiser_id ? null : line.advertiser_id,
-                      )
-                    }
-                  />
-                ))
-              )}
             </div>
           )}
         </section>

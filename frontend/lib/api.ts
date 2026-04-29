@@ -27,6 +27,8 @@ export type AdRankLine = {
   match_type: string;
   ad_id: number;
   ad_headline: string;
+  ad_description: string;
+  final_url: string;
   bid: number;
   quality_score: number;
   pctr: number;

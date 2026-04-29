@@ -112,13 +112,22 @@ export default function Home() {
       <main className="max-w-[1200px] mx-auto px-5 pb-12 pt-6 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
         <div className="space-y-5 min-w-0">
           {/* Pipeline canvas — hero. The auction visibly plays out here. */}
-          {auction && (
+          {auction ? (
             <AuctionPipelineSVG
               auctionId={auction.auction_id || Date.now()}
               lines={auction.lines}
               selectedNodeId={selectedNodeId}
               onSelectNode={setSelectedNodeId}
+              loading={loading}
             />
+          ) : (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-12 text-center">
+              <div
+                className="inline-block w-3 h-3 rounded-full mb-3"
+                style={{ background: "var(--warn)", animation: "ticker-pulse 0.8s ease-in-out infinite" }}
+              />
+              <div className="text-[12px] text-[var(--text-muted)]">Loading auction…</div>
+            </div>
           )}
 
           {/* Two-column: SERP on the left, charts on the right. */}

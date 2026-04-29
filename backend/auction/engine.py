@@ -18,7 +18,7 @@ from quality_score.aggregate import compute_quality_score, QualityScoreBreakdown
 from quality_score.ad_relevance import compute_ad_relevance
 from auction.ad_rank import compute_ad_rank
 from auction.slot_allocation import Bidder, allocate_slots, DEFAULT_RESERVE_AD_RANK
-from narration.template import narrate_auction
+from narration.llm import narrate_auction_llm as narrate_auction
 from bidding.features import extract_features
 from bidding.strategy import decide_bid, StrategyDecision
 from models import AdRankLine, AuctionResponse

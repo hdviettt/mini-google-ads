@@ -30,13 +30,15 @@ Inherits everything from the workspace `/personal/CLAUDE.md`:
 
 | Phase | Status | Demo state |
 |-------|--------|-----------|
-| 0. Scaffold | not started | repo + schema + seed data |
-| 1. Auction MVP | not started | type a query, see Ad Rank + GSP + slots |
-| 2. Quality Score depth | not started | drag QS slider, watch winner change |
-| 3. Match types | not started | broad match expansion via embeddings |
-| 4. Smart Bidding ML | not started | same query, different bid per user signal |
-| 5. Performance Max | optional | budget allocates across channels via ML |
-| 6. Public polish | optional | guided demo, deployed, shareable URL |
+| 0. Scaffold | shipped | repo + schema + seed data |
+| 1. Auction MVP | shipped | type a query, see Ad Rank + GSP + slots |
+| 2. Quality Score depth | shipped | drag QS slider, watch winner change |
+| 3. Match types | shipped | broad match expansion via embeddings |
+| 4. Smart Bidding ML | shipped | same query, different bid per user signal |
+| 5. Performance Max | skipped (optional) | not built |
+| 6. Public polish | shipped | LLM narration + Railway-ready |
+
+All 33 tests pass. Definition of done met.
 
 ## Don't
 

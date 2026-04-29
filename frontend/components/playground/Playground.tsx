@@ -1,7 +1,7 @@
 "use client";
 import type { AdRankLine } from "@/lib/api";
 
-const vnd = (n: number) => `${Math.round(n).toLocaleString("vi-VN")}`;
+const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
 
 type Props = {
   lines: AdRankLine[];
@@ -20,81 +20,111 @@ export function Playground({
   onQsChange,
   onReset,
 }: Props) {
-  if (lines.length === 0) {
-    return (
-      <div style={{ padding: 16, color: "var(--text-dim)", fontSize: 12 }}>
-        Run a query to see playground controls.
-      </div>
-    );
-  }
+  if (lines.length === 0) return null;
 
   return (
-    <div style={{ padding: 12, fontSize: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontWeight: 600, color: "var(--accent)" }}>Playground</span>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="text-[12px] font-semibold text-[var(--text)]">Playground</div>
+          <div className="text-[11px] text-[var(--text-dim)]">
+            Drag bid or QS to re-run the auction live.
+          </div>
+        </div>
         <button
           onClick={onReset}
-          style={{
-            background: "transparent",
-            color: "var(--text-dim)",
-            border: "1px solid #2a2a4a",
-            borderRadius: 6,
-            padding: "3px 9px",
-            fontSize: 11,
-          }}
+          className="text-[11px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] hover:border-[var(--border-hover)]"
         >
           Reset
         </button>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {lines.map((line) => {
           const bid = bidOverrides[line.advertiser_id] ?? line.bid;
           const qs = qsOverrides[line.advertiser_id] ?? line.quality_score;
+          const winning = line.slot_position !== null && line.slot_position !== undefined;
+
           return (
             <div
               key={line.advertiser_id}
-              style={{
-                background: "#16213e",
-                border: "1px solid #2a2a4a",
-                borderRadius: 6,
-                padding: "8px 10px",
-              }}
+              className="rounded-lg border border-[var(--border)] p-3"
+              style={{ background: "var(--bg-elevated)" }}
             >
-              <div style={{ fontWeight: 600, marginBottom: 6 }}>{line.advertiser_name}</div>
-              <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 6 }}>
-                <span style={{ width: 36, color: "var(--text-dim)" }}>Bid</span>
-                <input
-                  type="range"
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12px] font-medium text-[var(--text)] truncate">
+                  {line.advertiser_name}
+                </span>
+                {winning && (
+                  <span className="text-[9.5px] uppercase tracking-wider px-1.5 py-0.5 rounded text-[var(--text-dim)] border border-[var(--border)]">
+                    Slot {(line.slot_position ?? 0) + 1}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Slider
+                  label="Bid"
+                  value={bid}
                   min={500}
                   max={30000}
                   step={500}
-                  value={bid}
-                  onChange={(e) => onBidChange(line.advertiser_id, Number(e.target.value))}
-                  style={{ flex: 1 }}
+                  display={`${fmt(bid)} đ`}
+                  onChange={(v) => onBidChange(line.advertiser_id, v)}
                 />
-                <span style={{ width: 70, textAlign: "right", color: "var(--accent)" }}>
-                  {vnd(bid)}
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <span style={{ width: 36, color: "var(--text-dim)" }}>QS</span>
-                <input
-                  type="range"
+                <Slider
+                  label="QS"
+                  value={qs}
                   min={1}
                   max={10}
                   step={0.1}
-                  value={qs}
-                  onChange={(e) => onQsChange(line.advertiser_id, Number(e.target.value))}
-                  style={{ flex: 1 }}
+                  display={qs.toFixed(1)}
+                  onChange={(v) => onQsChange(line.advertiser_id, v)}
                 />
-                <span style={{ width: 70, textAlign: "right", color: "var(--accent)" }}>
-                  {qs.toFixed(1)}
-                </span>
               </div>
             </div>
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function Slider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  display,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  display: string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <div className="flex justify-between text-[10.5px] mb-0.5">
+        <span className="text-[var(--text-dim)]">{label}</span>
+        <span className="text-[var(--text-muted)]" style={{ fontFamily: "ui-monospace, monospace" }}>
+          {display}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full"
+        style={{ accentColor: "var(--text)" }}
+      />
     </div>
   );
 }

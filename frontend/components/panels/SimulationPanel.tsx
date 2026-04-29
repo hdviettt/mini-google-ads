@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { runSimulation, fetchSimulationStats, type SimulationStats } from "@/lib/api";
 
-const vnd = (n: number) => `${Math.round(n).toLocaleString("vi-VN")} VND`;
+const vnd = (n: number) => `${Math.round(n).toLocaleString("vi-VN")} đ`;
 
 export function SimulationPanel() {
   const [stats, setStats] = useState<any | null>(null);
@@ -35,99 +35,88 @@ export function SimulationPanel() {
   };
 
   return (
-    <div style={{ padding: 12, fontSize: 12 }}>
-      <div style={{ fontWeight: 600, color: "var(--accent)", marginBottom: 8 }}>
-        Simulation
-      </div>
-      <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 8 }}>
-        <input
-          type="number"
-          value={n}
-          min={50}
-          max={10000}
-          step={50}
-          onChange={(e) => setN(Number(e.target.value))}
-          style={{
-            width: 80,
-            padding: "4px 8px",
-            background: "#16213e",
-            border: "1px solid #2a2a4a",
-            borderRadius: 4,
-            color: "var(--text)",
-            fontSize: 12,
-          }}
-        />
-        <button
-          onClick={onRun}
-          disabled={running}
-          style={{
-            padding: "4px 12px",
-            border: "none",
-            background: "var(--accent)",
-            color: "#0a0a14",
-            fontWeight: 600,
-            fontSize: 11,
-            borderRadius: 4,
-          }}
-        >
-          {running ? "Running..." : `Run ${n} queries`}
-        </button>
-      </div>
-      {error && <div style={{ color: "var(--danger)", fontSize: 11 }}>{error}</div>}
-
-      {last && (
-        <div
-          style={{
-            background: "#0f1c2e",
-            border: "1px solid #2a3a5a",
-            borderRadius: 6,
-            padding: 8,
-            marginBottom: 8,
-            fontSize: 11,
-            lineHeight: 1.7,
-            fontFamily: "ui-monospace, monospace",
-          }}
-        >
-          <div>last run: {last.queries.toLocaleString()} queries</div>
-          <div>impressions {last.impressions.toLocaleString()}</div>
-          <div>clicks {last.clicks.toLocaleString()} ({last.ctr_pct.toFixed(2)}%)</div>
-          <div>conversions {last.conversions.toLocaleString()} ({last.cvr_pct.toFixed(2)}%)</div>
-          <div>spend {vnd(last.spend_vnd)}</div>
-          <div>revenue {vnd(last.revenue_vnd)}</div>
-          <div style={{ color: "var(--accent)" }}>ROAS {last.roas.toFixed(2)}x</div>
+    <div className="p-4 text-[13px]">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <div className="text-[13px] font-semibold text-[var(--text)]">Simulation</div>
+          <div className="text-[11.5px] text-[var(--text-dim)]">
+            Synthetic users hitting the auction. Drives Smart Bidding training data.
+          </div>
         </div>
-      )}
+        <div className="flex gap-2 items-center">
+          <input
+            type="number"
+            value={n}
+            min={50}
+            max={10000}
+            step={50}
+            onChange={(e) => setN(Number(e.target.value))}
+            className="w-24 px-2 py-1 rounded border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text)] text-[12px] outline-none"
+          />
+          <button
+            onClick={onRun}
+            disabled={running}
+            className="px-3 py-1.5 rounded bg-[var(--text)] text-[var(--bg)] text-[12px] font-medium disabled:opacity-50"
+          >
+            {running ? "Running…" : `Run ${n}`}
+          </button>
+        </div>
+      </div>
+      {error && <div className="text-[11px] text-[var(--bad)] mb-2">{error}</div>}
 
-      {stats && (
-        <div
-          style={{
-            background: "#0f172a",
-            border: "1px solid #2a2a4a",
-            borderRadius: 6,
-            padding: 8,
-            fontSize: 11,
-            lineHeight: 1.7,
-          }}
-        >
-          <div style={{ color: "var(--text-dim)", fontSize: 10, marginBottom: 4 }}>
-            Lifetime totals
-          </div>
-          <div>impressions {Number(stats.impressions).toLocaleString()}</div>
-          <div>clicks {Number(stats.clicks).toLocaleString()}</div>
-          <div>conversions {Number(stats.conversions).toLocaleString()}</div>
-          <div style={{ marginTop: 4 }}>
-            Smart Bidding model:{" "}
-            <span style={{ color: stats.model_trained ? "var(--accent)" : "var(--text-dim)" }}>
-              {stats.model_trained ? "trained" : "not trained"}
-            </span>
-          </div>
-          {!stats.model_trained && stats.impressions >= 200 && (
-            <div style={{ marginTop: 4, color: "var(--accent-2)", fontSize: 10 }}>
-              Run `python scripts/train_bidding_model.py` to fit pCVR model.
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+        {last && (
+          <div className="rounded-lg border border-[var(--border)] p-3" style={{ background: "var(--bg-elevated)" }}>
+            <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
+              Last batch
             </div>
-          )}
-        </div>
-      )}
+            <Stat label="Queries" value={last.queries.toLocaleString()} />
+            <Stat label="Impressions" value={last.impressions.toLocaleString()} />
+            <Stat label="Clicks" value={`${last.clicks.toLocaleString()} (${last.ctr_pct.toFixed(2)}%)`} />
+            <Stat label="Conversions" value={`${last.conversions.toLocaleString()} (${last.cvr_pct.toFixed(2)}%)`} />
+            <Stat label="Spend" value={vnd(last.spend_vnd)} />
+            <Stat label="Revenue" value={vnd(last.revenue_vnd)} />
+            <Stat label="ROAS" value={`${last.roas.toFixed(2)}×`} accent />
+          </div>
+        )}
+
+        {stats && (
+          <div className="rounded-lg border border-[var(--border)] p-3" style={{ background: "var(--bg-elevated)" }}>
+            <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
+              Lifetime totals
+            </div>
+            <Stat label="Impressions" value={Number(stats.impressions).toLocaleString()} />
+            <Stat label="Clicks" value={Number(stats.clicks).toLocaleString()} />
+            <Stat label="Conversions" value={Number(stats.conversions).toLocaleString()} />
+            <Stat label="Revenue" value={vnd(Number(stats.revenue_vnd ?? 0))} />
+            <Stat label="Spend" value={vnd(Number(stats.spend_vnd ?? 0))} />
+            <Stat
+              label="Smart Bidding model"
+              value={stats.model_trained ? "trained" : "not trained"}
+              accent={stats.model_trained}
+            />
+            {!stats.model_trained && Number(stats.impressions) >= 200 && (
+              <div className="mt-2 text-[10.5px] text-[var(--warn)]">
+                Run <code className="text-[var(--text)] bg-[var(--bg)] px-1 rounded">python scripts/train_bidding_model.py</code> to fit pCVR.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
+  return (
+    <div className="flex justify-between gap-3 py-0.5">
+      <span className="text-[11.5px] text-[var(--text-dim)]">{label}</span>
+      <span
+        className={`text-[12px] ${accent ? "text-[var(--text)] font-semibold" : "text-[var(--text-muted)]"}`}
+        style={{ fontFamily: "ui-monospace, monospace" }}
+      >
+        {value}
+      </span>
     </div>
   );
 }

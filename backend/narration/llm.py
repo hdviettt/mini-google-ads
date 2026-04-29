@@ -48,17 +48,17 @@ def narrate_auction_llm(query: str, lines: Iterable[AdRankLine]) -> str:
     facts = _summarize_lines(lines)
 
     system = (
-        "Ban la chuyen gia Google Ads. Giai thich ket qua dau gia Google Ads bang tieng Viet, "
-        "khong dung emoji, khong em-dash. 2 den 4 cau. Tap trung vao: tai sao ai do thang "
-        "(thuong vi Quality Score), tai sao ho phai tra it hon bid (GSP), va Smart Bidding "
-        "neu co. Khong dich tu khoa va ten thuong hieu sang ngon ngu khac."
+        "Bạn là chuyên gia Google Ads. Giải thích kết quả đấu giá Google Ads bằng tiếng Việt "
+        "có dấu đầy đủ, không dùng emoji, không dùng em-dash. 2 đến 4 câu. Tập trung vào: "
+        "tại sao ai đó thắng (thường nhờ Quality Score), tại sao họ trả ít hơn bid (GSP), "
+        "và Smart Bidding nếu có. Không dịch từ khóa và tên thương hiệu sang ngôn ngữ khác."
     )
     user = (
-        f"Truy van: {query}\n"
-        f"Ket qua dau gia (sap xep theo Ad Rank giam dan):\n"
+        f"Truy vấn: {query}\n"
+        f"Kết quả đấu giá (sắp xếp theo Ad Rank giảm dần):\n"
         f"{json.dumps(facts, ensure_ascii=False, indent=2)}\n\n"
-        f"Phong cach mau:\n{template_narration}\n\n"
-        f"Hay viet lai goi mo va de hieu hon."
+        f"Phong cách mẫu:\n{template_narration}\n\n"
+        f"Hãy viết lại gợi mở và dễ hiểu hơn."
     )
 
     payload = {

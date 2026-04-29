@@ -14,11 +14,11 @@ import { Playground } from "@/components/playground/Playground";
 import { SimulationPanel } from "@/components/panels/SimulationPanel";
 
 const SAMPLE_QUERIES = [
-  "vay du tiec",
-  "vay tien online",
-  "ve may bay gia re",
-  "tour phu quoc",
-  "dat phong khach san",
+  "váy dự tiệc",
+  "vay tiền online",
+  "vé máy bay giá rẻ",
+  "tour phú quốc",
+  "đặt phòng khách sạn",
 ];
 
 const USER_PRESETS: { label: string; id: number | null; hint: string }[] = [
@@ -32,7 +32,7 @@ export default function Home() {
   const [advertisers, setAdvertisers] = useState<Advertiser[] | null>(null);
   const [advertisersError, setAdvertisersError] = useState<string | null>(null);
 
-  const [query, setQuery] = useState("vay tien online");
+  const [query, setQuery] = useState("vay tiền online");
   const [auction, setAuction] = useState<AuctionResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,7 +151,7 @@ export default function Home() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="vay du tiec"
+              placeholder="váy dự tiệc"
               className="flex-1 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)] text-[15px] outline-none focus:border-[var(--text)] transition-colors"
             />
             <button

@@ -74,7 +74,7 @@ export function Explainer() {
                 </div>
                 <ul className="list-disc pl-5 space-y-1.5">
                   <li>
-                    Search <code className="text-[var(--text)] bg-[var(--bg-elevated)] px-1 rounded">vay tien online</code>.
+                    Search <code className="text-[var(--text)] bg-[var(--bg-elevated)] px-1 rounded">vay tiền online</code>.
                     The winner has a lower bid than slot 2 but higher Quality Score.
                   </li>
                   <li>

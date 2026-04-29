@@ -1,16 +1,19 @@
-"""Exact-match keyword lookup. Phase 3 implementation.
-
-Phase 3: returns keywords with match_type='exact' that match the query
-literally (after normalization). Phrase and broad live in their own
-modules and are dispatched together by matching/dispatcher.py."""
+"""Exact-match keyword lookup with Vietnamese diacritic-folding so that
+users can type 'vay du tiec' or 'váy dự tiệc' and match the same
+keyword. Real Google does similar close-variant matching for VN."""
 from __future__ import annotations
 import re
+
+from quality_score.text_utils import strip_diacritics
 
 _WS_RE = re.compile(r"\s+")
 
 
 def normalize(s: str) -> str:
-    return _WS_RE.sub(" ", s.lower().strip())
+    """Lowercase, strip whitespace, collapse spaces, fold diacritics.
+    The folding is only used for comparison; original keyword text is
+    preserved on the keywords table for display."""
+    return _WS_RE.sub(" ", strip_diacritics(s).lower().strip())
 
 
 def exact_match(query: str, keyword_text: str) -> bool:
@@ -18,8 +21,10 @@ def exact_match(query: str, keyword_text: str) -> bool:
 
 
 def find_exact_matches(conn, query: str) -> list[dict]:
-    """Return all keywords with match_type='exact' whose text equals the
-    normalized query."""
+    """Return all keywords with match_type='exact' whose text matches
+    the query under diacritic-folded normalization. The DB query pulls
+    all 'exact' rows, then Python compares folded strings (small N,
+    fine for our scale)."""
     norm = normalize(query)
     rows = conn.execute(
         """
@@ -29,11 +34,10 @@ def find_exact_matches(conn, query: str) -> list[dict]:
         FROM keywords k
         JOIN campaigns c ON c.id = k.campaign_id
         JOIN advertisers a ON a.id = c.advertiser_id
-        WHERE k.match_type = 'exact' AND LOWER(TRIM(k.text)) = %s
+        WHERE k.match_type = 'exact'
         """,
-        (norm,),
     ).fetchall()
-    return [_row_to_match(r, "exact") for r in rows]
+    return [_row_to_match(r, "exact") for r in rows if normalize(r[1]) == norm]
 
 
 def _row_to_match(r, match_type: str) -> dict:

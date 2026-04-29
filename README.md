@@ -50,6 +50,7 @@ This is what Google does every time someone searches a commercial query. Each pi
 | **Tracking** | Logs impressions, clicks, conversions | Synthetic users with configurable click and conversion behavior |
 | **Smart Bidding** | ML model that adjusts bids per query | Gradient-boosted tree predicting P(conversion \| query + user signals), targets ROAS or CPA |
 | **Performance Max** *(optional)* | Multi-inventory wrapper | Same auction running across simulated channels, ML allocates budget |
+| **Narration** | Translates the math into plain-language explanations of every auction outcome | Template-based at first, upgraded to LLM (Groq + Llama 3.3 70B) for polished Vietnamese / English narration |
 
 ## What this teaches
 
@@ -78,9 +79,10 @@ The frontend is a **React Flow canvas** that visualizes the entire pipeline as a
 |-------|------|
 | Frontend | Next.js 16, React 19, React Flow, Tailwind v4, TypeScript |
 | Backend | FastAPI, Python 3.12+ |
-| Database | PostgreSQL 16 + pgvector (for broad-match embeddings) |
-| ML | scikit-learn (LightGBM for Smart Bidding pCVR model) |
-| Embeddings | Voyage AI (voyage-3-lite, 512d) |
+| Database | PostgreSQL 16 + pgvector (for broad-match keyword embeddings) |
+| ML | scikit-learn + LightGBM (Smart Bidding pCVR model) |
+| Embeddings | Local sentence-transformers (`all-MiniLM-L6-v2`, CPU, no API key) |
+| LLM Narration | Groq (Llama 3.3 70B via `llama-3.3-70b-versatile`) |
 | Hosting | Railway |
 
 ## Project Structure
@@ -93,8 +95,9 @@ backend/
 ├── bidding/         # bid strategies + Smart Bidding ML model
 ├── tracking/        # impression, click, conversion logging
 ├── simulation/      # synthetic users, queries, conversion behavior
+├── narration/       # template + LLM explanations of auction outcomes
 ├── api/             # FastAPI endpoints + WebSocket
-├── scripts/         # CLI: seed_advertisers, train_bidding_model, run_simulation
+├── scripts/         # CLI: seed_advertisers, embed_keywords, train_bidding_model, run_simulation
 ├── db.py
 ├── models.py
 └── main.py

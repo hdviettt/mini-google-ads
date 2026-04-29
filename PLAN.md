@@ -44,8 +44,9 @@ Each phase is independently shippable. The phase ends when the listed Demo State
 - React Flow canvas: query node → match node → ad rank node (one per advertiser) → GSP node → slot node
 - Click any node to see real numbers in detail panel
 - Playground: bid slider per advertiser, watch slot reorder live
+- `narration/template.py` — string-template explanations of every auction outcome ("Advertiser B won with Ad Rank 7.1 vs your 6.4. They paid 4.2k, not their 6k bid, because GSP charges them the minimum to beat the next ranker.") This ships in Phase 1 so the public hero artifact is comprehensible from day one.
 
-**Demo state:** the auction visualization. This is the public artifact's hero moment. Type "running shoes," see four advertisers compete, see who wins and pays what, drag a bid slider, watch the order change.
+**Demo state:** the auction visualization. This is the public artifact's hero moment. Type "running shoes," see four advertisers compete, see who wins and pays what, read a plain-language explanation of why, drag a bid slider, watch the order change and the explanation update.
 
 ### Phase 2: Quality Score depth (week 2 to week 3)
 
@@ -102,6 +103,7 @@ This phase is the AI Leader payoff. It makes the agency-disruption story concret
 
 **Goal:** ship as a public artifact people will share.
 
+- `narration/llm.py` — upgrade narration from string-template to Groq + Llama 3.3 70B. Generates richer, more natural Vietnamese and English explanations. Falls back to template narration on Groq failure.
 - Landing page with guided demo flow ("type this query, watch this happen")
 - Documentation pages for each pipeline stage
 - One-page write-up: "How Google Ads actually decides who wins"
@@ -109,7 +111,7 @@ This phase is the AI Leader payoff. It makes the agency-disruption story concret
 - Deploy to Railway, custom domain
 - README polish + demo gif
 
-**Demo state:** shareable URL, one-click guided tour that hits the four wrong-intuition demos in 90 seconds.
+**Demo state:** shareable URL, one-click guided tour that hits the four wrong-intuition demos in 90 seconds, with LLM-generated narration that reads naturally in Vietnamese.
 
 ## Tech stack rationale
 
@@ -119,9 +121,10 @@ Mirroring `/projects/search-engine` so there is no new tooling to learn:
 |-------|--------|-----|
 | Frontend | Next.js + React Flow + Tailwind | Same as search-engine, canvas is the visualization spine |
 | Backend | FastAPI + Python | Same as search-engine, ML libraries live in Python |
-| Database | Postgres + pgvector | Same as search-engine, pgvector for broad-match embeddings |
-| ML | scikit-learn + LightGBM | LightGBM is the standard for tabular pCVR prediction, scikit-learn handles the simpler logistic regression for pCTR |
-| Embeddings | Voyage voyage-3-lite | Same as search-engine, already configured at workspace level |
+| Database | Postgres + pgvector | Same as search-engine, pgvector for broad-match keyword embeddings |
+| ML | scikit-learn + LightGBM | LightGBM is what real ad-tech uses for tabular pCVR prediction. scikit-learn handles the simpler logistic regression for pCTR |
+| Embeddings | Local sentence-transformers (`all-MiniLM-L6-v2`) | Only ~1k to 5k short keyword strings to embed. Local CPU is faster, no API key, lower friction for run-it-yourself |
+| LLM Narration | Groq + Llama 3.3 70B | Translates auction math into plain-language explanations. Same Groq integration as search-engine, can be lifted directly |
 | Hosting | Railway | Same as search-engine, deploy script can be cloned |
 
 ## What is explicitly out of scope

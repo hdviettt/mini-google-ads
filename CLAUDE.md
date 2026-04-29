@@ -12,8 +12,10 @@ A working from-scratch mini Google Ads stack. Centerpiece is the auction (Ad Ran
 
 - **The auction is the centerpiece.** Quality Score, Smart Bidding, Performance Max are layers on top. Phase 1 ships the auction first.
 - **Synthetic data only.** No real ad inventory, no real money, no mobile or programmatic RTB. Google Ads paid search and PMax simulation only.
-- **Tech stack mirrors search-engine.** Next.js + React Flow + Tailwind on the frontend. FastAPI + Python + Postgres + pgvector on the backend. LightGBM for Smart Bidding. Voyage embeddings for broad match. Railway for hosting.
-- **Definition of done is Phase 4.** Phase 5 (Performance Max) and Phase 6 (polish) are upside, not blockers.
+- **Product is a shareable learning artifact, not a multiplayer game or real-account diagnostic.** Single-user sandbox. Decision logged 2026-04-29 against alternatives (multiplayer game, Google Ads OAuth audit).
+- **Tech stack:** Next.js + React Flow + Tailwind on the frontend. FastAPI + Python + Postgres + pgvector on the backend. LightGBM for Smart Bidding. **Local sentence-transformers** (`all-MiniLM-L6-v2`) for broad-match embeddings, not Voyage. **Groq + Llama 3.3 70B** for LLM narration of auction outcomes. Railway for hosting.
+- **Narration ships in Phase 1.** Template-based first, upgraded to LLM in Phase 6. The math without narration is incomprehensible to most viewers.
+- **Definition of done is Phase 4.** Phase 5 (Performance Max) and Phase 6 (polish + LLM narration) are upside, not blockers.
 
 ## Voice and writing rules
 

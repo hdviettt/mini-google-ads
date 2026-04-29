@@ -36,6 +36,19 @@
   --ok: #1a6b3c;
   --warn: #b8860b;
   --bad: #c0392b;
+
+  /* Google SERP world: light mode mirrors google.com */
+  --g-bg: #ffffff;
+  --g-card-bg: #ffffff;
+  --g-border: #dadce0;
+  --g-text: #202124;
+  --g-meta: #5f6368;
+  --g-snippet: #4d5156;
+  --g-link: #1a0dab;
+  --g-search-shadow: 0 1px 6px rgba(32, 33, 36, 0.06);
+  --g-search-border: #dfe1e5;
+  --g-chrome-bg: #f1f3f4;
+  --g-chrome-text: #5f6368;
 }
 
 [data-theme="dark"] {
@@ -71,6 +84,19 @@
   --ok: #4ade80;
   --warn: #fbbf24;
   --bad: #f87171;
+
+  /* Google SERP world: dark mode mirrors Google's dark search */
+  --g-bg: #202124;
+  --g-card-bg: #303134;
+  --g-border: #3c4043;
+  --g-text: #e8eaed;
+  --g-meta: #9aa0a6;
+  --g-snippet: #bdc1c6;
+  --g-link: #8ab4f8;
+  --g-search-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+  --g-search-border: #5f6368;
+  --g-chrome-bg: #292a2d;
+  --g-chrome-text: #9aa0a6;
 }
 
 html, body {

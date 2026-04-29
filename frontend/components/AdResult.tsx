@@ -3,11 +3,10 @@ import { useState } from "react";
 import type { AdRankLine } from "@/lib/api";
 
 /**
- * Google-fidelity sponsored ad card. Used in the User section to drop
- * viewers into a familiar mental model: "this is what a Google search
- * result looks like." Hard-coded to Google's actual SERP colors and
- * spacing regardless of theme — the User section is its own visual
- * world separate from the Business / Algorithm sections.
+ * Google-fidelity sponsored ad card. Theme-aware: in light mode it
+ * matches google.com exactly; in dark mode it matches Google's dark
+ * SERP. The User section is its own visual world but follows the
+ * page theme so the contrast stays intentional, not jarring.
  */
 
 type Props = {
@@ -61,18 +60,17 @@ export function AdResult({ line, selected, onSelect }: Props) {
       onClick={onSelect}
       className="rounded-lg cursor-pointer fade-in transition-shadow"
       style={{
-        background: "#ffffff",
-        border: selected ? "1px solid #1a73e8" : "1px solid transparent",
+        background: "var(--g-card-bg)",
+        border: selected ? "1px solid var(--g-link)" : "1px solid transparent",
         boxShadow: selected
-          ? "0 0 0 1px #1a73e8 inset"
-          : "0 1px 2px rgba(0,0,0,0.04)",
+          ? "0 0 0 1px var(--g-link) inset"
+          : "none",
         padding: "14px 16px 12px",
         fontFamily: "Roboto, arial, sans-serif",
       }}
     >
-      {/* Top row: Sponsored + favicon + brand + URL breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#202124" }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--g-text)" }}>
           Sponsored
         </span>
         <div
@@ -92,36 +90,34 @@ export function AdResult({ line, selected, onSelect }: Props) {
         >
           {fav.letter}
         </div>
-        <span style={{ fontSize: 14, color: "#202124", fontWeight: 500 }}>
+        <span style={{ fontSize: 14, color: "var(--g-text)", fontWeight: 500 }}>
           {line.advertiser_name}
         </span>
-        <span style={{ fontSize: 12, color: "#5f6368" }}>·</span>
-        <span style={{ fontSize: 12, color: "#5f6368" }}>
+        <span style={{ fontSize: 12, color: "var(--g-meta)" }}>·</span>
+        <span style={{ fontSize: 12, color: "var(--g-meta)" }}>
           {domain}
           {path}
         </span>
       </div>
 
-      {/* Headline (Google blue) */}
       <h3
         style={{
           fontSize: 20,
           fontWeight: 400,
           lineHeight: 1.3,
-          color: "#1a0dab",
+          color: "var(--g-link)",
           margin: "2px 0 4px",
         }}
       >
         {line.ad_headline || "(no headline)"}
       </h3>
 
-      {/* Description (Google snippet gray) */}
       {line.ad_description && (
         <p
           style={{
             fontSize: 14,
             lineHeight: 1.58,
-            color: "#4d5156",
+            color: "var(--g-snippet)",
             margin: "0 0 4px",
           }}
         >
@@ -129,8 +125,6 @@ export function AdResult({ line, selected, onSelect }: Props) {
         </p>
       )}
 
-      {/* Pedagogical breakdown toggle, intentionally subtle so it
-         doesn't break the SERP feel. Click to reveal auction details. */}
       <button
         type="button"
         onClick={(e) => {
@@ -142,7 +136,7 @@ export function AdResult({ line, selected, onSelect }: Props) {
           padding: 0,
           background: "transparent",
           border: 0,
-          color: "#70757a",
+          color: "var(--g-meta)",
           fontSize: 11,
           fontFamily: "inherit",
           cursor: "pointer",
@@ -169,7 +163,7 @@ function Breakdown({ line }: { line: AdRankLine }) {
       style={{
         marginTop: 8,
         paddingTop: 8,
-        borderTop: "1px solid #ebebeb",
+        borderTop: "1px solid var(--g-border)",
         fontSize: 11,
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -197,8 +191,8 @@ function Breakdown({ line }: { line: AdRankLine }) {
 function Cell({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 6 }}>
-      <span style={{ color: "#80868b" }}>{label}</span>
-      <span style={{ color: "#202124" }}>{value}</span>
+      <span style={{ color: "var(--g-meta)" }}>{label}</span>
+      <span style={{ color: "var(--g-text)" }}>{value}</span>
     </div>
   );
 }

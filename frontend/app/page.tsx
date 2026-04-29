@@ -201,104 +201,134 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Google-fidelity SERP frame — always white, Roboto-ish,
-             Google blue links, sponsored badges. This is its own
-             visual world separate from the rest of the page. */}
+          {/* Google-fidelity SERP wrapped in browser chrome. Theme-aware
+             via --g-* CSS variables so light + dark both feel native. */}
           <div
+            className="rounded-2xl overflow-hidden border"
             style={{
-              background: "#ffffff",
-              borderRadius: 16,
-              border: "1px solid #dadce0",
-              padding: "20px 22px 24px",
-              fontFamily: "Roboto, arial, sans-serif",
-              color: "#202124",
+              borderColor: "var(--g-border)",
+              background: "var(--g-bg)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
             }}
           >
-            {/* Mini Google-style header inside the frame */}
-            <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 14 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 1, fontSize: 22, fontWeight: 500 }}>
-                <span style={{ color: "#4285f4" }}>G</span>
-                <span style={{ color: "#ea4335" }}>o</span>
-                <span style={{ color: "#fbbc04" }}>o</span>
-                <span style={{ color: "#4285f4" }}>g</span>
-                <span style={{ color: "#34a853" }}>l</span>
-                <span style={{ color: "#ea4335" }}>e</span>
+            {/* Browser chrome */}
+            <div
+              className="flex items-center gap-3 px-3 py-2"
+              style={{
+                background: "var(--g-chrome-bg)",
+                borderBottom: "1px solid var(--g-border)",
+              }}
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="block w-3 h-3 rounded-full" style={{ background: "#ff5f57" }} />
+                <span className="block w-3 h-3 rounded-full" style={{ background: "#febc2e" }} />
+                <span className="block w-3 h-3 rounded-full" style={{ background: "#28c840" }} />
               </div>
-              <form onSubmit={onSubmit} style={{ flex: 1, display: "flex" }}>
-                <div
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "9px 16px",
-                    borderRadius: 24,
-                    border: "1px solid #dfe1e5",
-                    background: "#fff",
-                    boxShadow: "0 1px 6px rgba(32,33,36,0.06)",
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa0a6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="váy dự tiệc"
-                    style={{
-                      flex: 1,
-                      border: 0,
-                      outline: 0,
-                      background: "transparent",
-                      fontSize: 15,
-                      color: "#202124",
-                      fontFamily: "inherit",
-                    }}
-                  />
-                </div>
-              </form>
+              <div
+                className="flex-1 flex items-center gap-2 px-3 py-1 rounded-full text-[12px] truncate"
+                style={{
+                  background: "var(--g-bg)",
+                  border: "1px solid var(--g-border)",
+                  color: "var(--g-chrome-text)",
+                  fontFamily: "ui-monospace, monospace",
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <span className="truncate">google.com/search?q={encodeURIComponent(query)}</span>
+              </div>
             </div>
 
-            {/* Result count line */}
-            {auction && (
-              <div style={{ fontSize: 12, color: "#70757a", marginBottom: 14 }}>
-                Khoảng {auction.lines.length.toLocaleString("vi-VN")} kết quả
-                {" · "}
-                {auction.time_ms.toFixed(0)} ms
-              </div>
-            )}
-
-            {error && (
-              <div style={{ fontSize: 13, color: "#c5221f", marginBottom: 12 }}>
-                error: {error}
-              </div>
-            )}
-
-            {/* Sponsored results */}
-            {auction && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {winners.length === 0 ? (
-                  <div style={{ fontSize: 14, color: "#5f6368", padding: "20px 0" }}>
-                    Không có nhãn hàng nào thắng slot cho truy vấn này.
-                  </div>
-                ) : (
-                  winners.map((line) => (
-                    <AdResult
-                      key={line.advertiser_id}
-                      line={line}
-                      selected={selectedAdvertiserId === line.advertiser_id}
-                      onSelect={() =>
-                        setSelectedAdvertiserId(
-                          selectedAdvertiserId === line.advertiser_id ? null : line.advertiser_id,
-                        )
-                      }
+            {/* SERP body */}
+            <div
+              style={{
+                padding: "20px 22px 24px",
+                fontFamily: "Roboto, arial, sans-serif",
+                color: "var(--g-text)",
+                background: "var(--g-bg)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 14 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 1, fontSize: 22, fontWeight: 500 }}>
+                  <span style={{ color: "#4285f4" }}>G</span>
+                  <span style={{ color: "#ea4335" }}>o</span>
+                  <span style={{ color: "#fbbc04" }}>o</span>
+                  <span style={{ color: "#4285f4" }}>g</span>
+                  <span style={{ color: "#34a853" }}>l</span>
+                  <span style={{ color: "#ea4335" }}>e</span>
+                </div>
+                <form onSubmit={onSubmit} style={{ flex: 1, display: "flex" }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "9px 16px",
+                      borderRadius: 24,
+                      border: "1px solid var(--g-search-border)",
+                      background: "var(--g-card-bg)",
+                      boxShadow: "var(--g-search-shadow)",
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--g-meta)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="váy dự tiệc"
+                      style={{
+                        flex: 1,
+                        border: 0,
+                        outline: 0,
+                        background: "transparent",
+                        fontSize: 15,
+                        color: "var(--g-text)",
+                        fontFamily: "inherit",
+                      }}
                     />
-                  ))
-                )}
+                  </div>
+                </form>
               </div>
-            )}
+
+              {auction && (
+                <div style={{ fontSize: 12, color: "var(--g-meta)", marginBottom: 14 }}>
+                  Khoảng {auction.lines.length.toLocaleString("vi-VN")} kết quả · {auction.time_ms.toFixed(0)} ms
+                </div>
+              )}
+
+              {error && (
+                <div style={{ fontSize: 13, color: "#c5221f", marginBottom: 12 }}>error: {error}</div>
+              )}
+
+              {auction && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {winners.length === 0 ? (
+                    <div style={{ fontSize: 14, color: "var(--g-meta)", padding: "20px 0" }}>
+                      Không có nhãn hàng nào thắng slot cho truy vấn này.
+                    </div>
+                  ) : (
+                    winners.map((line) => (
+                      <AdResult
+                        key={line.advertiser_id}
+                        line={line}
+                        selected={selectedAdvertiserId === line.advertiser_id}
+                        onSelect={() =>
+                          setSelectedAdvertiserId(
+                            selectedAdvertiserId === line.advertiser_id ? null : line.advertiser_id,
+                          )
+                        }
+                      />
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Narration callout — written for the user, sits below the

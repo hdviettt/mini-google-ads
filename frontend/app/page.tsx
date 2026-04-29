@@ -14,6 +14,7 @@ import { AlgorithmSide } from "@/components/AlgorithmSide";
 import { FlowDiagram } from "@/components/FlowDiagram";
 import { LiveStats } from "@/components/LiveStats";
 import { ControlPanel } from "@/components/ControlPanel";
+import { TypewriterText } from "@/components/TypewriterText";
 
 const SAMPLE_QUERIES = [
   "váy dự tiệc",
@@ -301,12 +302,17 @@ export default function Home() {
              palette) so it reads as our voice, not Google's. */}
           {auction && auction.narration && (
             <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5 fade-in">
-              <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
+              <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2 flex items-center gap-2">
                 Người không biết Google Ads cũng đọc được
+                <span
+                  className="block w-1.5 h-1.5 rounded-full"
+                  style={{ background: "var(--ok)", animation: "ticker-pulse 1.5s ease-in-out infinite" }}
+                />
               </div>
-              <p className="text-[14.5px] leading-relaxed text-[var(--text)]">
-                {auction.narration}
-              </p>
+              <TypewriterText
+                text={auction.narration}
+                className="text-[14.5px] leading-relaxed text-[var(--text)]"
+              />
             </div>
           )}
         </section>
@@ -338,6 +344,7 @@ export default function Home() {
             lines={auction.lines}
             selectedAdvertiserId={selectedAdvertiserId}
             onSelectAdvertiser={setSelectedAdvertiserId}
+            auctionId={auction.auction_id || Date.now()}
           />
         )}
 

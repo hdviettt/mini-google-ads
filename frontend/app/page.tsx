@@ -11,6 +11,7 @@ import { Explainer } from "@/components/Explainer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BusinessSide } from "@/components/BusinessSide";
 import { AlgorithmSide } from "@/components/AlgorithmSide";
+import { FlowDiagram } from "@/components/FlowDiagram";
 
 const SAMPLE_QUERIES = [
   "váy dự tiệc",
@@ -138,8 +139,12 @@ export default function Home() {
       </header>
 
       <main className="max-w-[920px] mx-auto px-5 pb-24">
+        <div className="pt-8">
+          <FlowDiagram />
+        </div>
+
         {/* SECTION 1 — USER SIDE */}
-        <section id="user" className="pt-8 fade-in">
+        <section id="user" className="pt-2 fade-in">
           <div className="mb-5">
             <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-1">
               1 · Phía user

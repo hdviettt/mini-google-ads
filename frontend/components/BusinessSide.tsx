@@ -1,5 +1,6 @@
 "use client";
 import type { AdRankLine } from "@/lib/api";
+import { QualityGauge } from "@/components/charts/QualityGauge";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
 const vnd = (n: number | null | undefined) =>
@@ -117,28 +118,17 @@ export function BusinessSide({ lines, query }: Props) {
                 </div>
               </div>
 
-              {/* QS line */}
-              <div className="flex items-center gap-2 text-[11.5px]">
-                <span className="text-[var(--text-dim)]">Quality Score:</span>
-                <span className="text-[var(--text)] font-medium" style={{ fontFamily: "ui-monospace, monospace" }}>
-                  {line.quality_score.toFixed(1)} / 10
-                </span>
-                <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "var(--score-bar-bg)" }}>
-                  <div
-                    className="h-full"
-                    style={{
-                      width: `${(line.quality_score / 10) * 100}%`,
-                      background: line.quality_score >= 7 ? "var(--ok)" : line.quality_score >= 4 ? "var(--warn)" : "var(--bad)",
-                    }}
-                  />
+              {/* Quality gauge with component bars */}
+              <div className="pt-2 border-t border-[var(--separator)]">
+                <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-dim)] mb-2">
+                  Quality Score (Google chấm)
                 </div>
-              </div>
-              <div className="mt-1.5 text-[10.5px] text-[var(--text-dim)] flex gap-3">
-                <span>pCTR {(line.pctr * 100).toFixed(2)}%</span>
-                <span>·</span>
-                <span>Ad relevance {line.ad_relevance.toFixed(1)}</span>
-                <span>·</span>
-                <span>LP {line.lp_experience.toFixed(1)}</span>
+                <QualityGauge
+                  score={line.quality_score}
+                  pctr={line.pctr}
+                  adRelevance={line.ad_relevance}
+                  lpExperience={line.lp_experience}
+                />
               </div>
             </div>
           );

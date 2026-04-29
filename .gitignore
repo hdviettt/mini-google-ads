@@ -44,3 +44,6 @@ full_backup.sql
 # logs
 *.log
 logs/
+
+# local docker overrides
+docker-compose.override.yml

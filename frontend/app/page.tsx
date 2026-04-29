@@ -9,6 +9,7 @@ import {
 import { PipelineCanvas } from "@/components/canvas/PipelineCanvas";
 import { Playground } from "@/components/playground/Playground";
 import { DetailPanel } from "@/components/panels/DetailPanel";
+import { SimulationPanel } from "@/components/panels/SimulationPanel";
 
 const SAMPLE_QUERIES = [
   "vay du tiec",
@@ -31,6 +32,8 @@ export default function Home() {
   const [bidOverrides, setBidOverrides] = useState<Record<number, number>>({});
   const [qsOverrides, setQsOverrides] = useState<Record<number, number>>({});
   const [selectedAdvertiserId, setSelectedAdvertiserId] = useState<number | null>(null);
+  const [simulatedUserId, setSimulatedUserId] = useState<number | null>(null);
+  const [showSimulation, setShowSimulation] = useState(false);
 
   // Debounce timer for slider re-runs
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -40,7 +43,7 @@ export default function Home() {
   }, []);
 
   const doRun = useCallback(
-    async (q: string, bids: Record<number, number>, qs: Record<number, number>) => {
+    async (q: string, bids: Record<number, number>, qs: Record<number, number>, userId: number | null) => {
       if (!q.trim()) return;
       setLoading(true);
       setError(null);
@@ -49,6 +52,7 @@ export default function Home() {
           num_slots: 4,
           bid_overrides: bids,
           qs_overrides: qs,
+          user_id: userId,
         });
         setAuction(resp);
       } catch (e) {
@@ -65,19 +69,19 @@ export default function Home() {
     if (!auction) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      doRun(query, bidOverrides, qsOverrides);
+      doRun(query, bidOverrides, qsOverrides, simulatedUserId);
     }, 200);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bidOverrides, qsOverrides]);
+  }, [bidOverrides, qsOverrides, simulatedUserId]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setBidOverrides({});
     setQsOverrides({});
-    doRun(query, {}, {});
+    doRun(query, {}, {}, simulatedUserId);
   };
 
   const selectedLine = useMemo(() => {
@@ -88,7 +92,7 @@ export default function Home() {
   const resetOverrides = () => {
     setBidOverrides({});
     setQsOverrides({});
-    if (auction) doRun(query, {}, {});
+    if (auction) doRun(query, {}, {}, simulatedUserId);
   };
 
   return (
@@ -150,6 +154,47 @@ export default function Home() {
             {loading ? "Running..." : "Run auction"}
           </button>
         </form>
+        <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: "var(--text-dim)" }}>User intent:</span>
+          {[
+            { label: "anonymous", id: null },
+            { label: "high intent", id: 1 },
+            { label: "medium intent", id: 200 },
+            { label: "low intent", id: 400 },
+          ].map((u) => (
+            <button
+              key={u.label}
+              type="button"
+              onClick={() => setSimulatedUserId(u.id)}
+              style={{
+                padding: "3px 9px",
+                borderRadius: 12,
+                border: "1px solid var(--border)",
+                background: simulatedUserId === u.id ? "#1e293b" : "#16213e",
+                color: simulatedUserId === u.id ? "var(--accent)" : "var(--text-dim)",
+                fontSize: 11,
+                fontWeight: simulatedUserId === u.id ? 600 : 400,
+              }}
+            >
+              {u.label}
+            </button>
+          ))}
+          <span style={{ flex: 1 }} />
+          <button
+            type="button"
+            onClick={() => setShowSimulation((s) => !s)}
+            style={{
+              padding: "3px 9px",
+              borderRadius: 12,
+              border: "1px solid var(--border)",
+              background: "#16213e",
+              color: showSimulation ? "var(--accent)" : "var(--text-dim)",
+              fontSize: 11,
+            }}
+          >
+            {showSimulation ? "Hide simulation" : "Show simulation"}
+          </button>
+        </div>
         <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
           <span style={{ fontSize: 11, color: "var(--text-dim)" }}>Try:</span>
           {SAMPLE_QUERIES.map((q) => (
@@ -160,7 +205,7 @@ export default function Home() {
                 setQuery(q);
                 setBidOverrides({});
                 setQsOverrides({});
-                doRun(q, {}, {});
+                doRun(q, {}, {}, simulatedUserId);
               }}
               style={{
                 padding: "3px 9px",
@@ -209,6 +254,11 @@ export default function Home() {
         <div style={{ borderBottom: "1px solid var(--border)" }}>
           <DetailPanel line={selectedLine} />
         </div>
+        {showSimulation && (
+          <div style={{ borderBottom: "1px solid var(--border)" }}>
+            <SimulationPanel />
+          </div>
+        )}
         <div>
           <Playground
             lines={auction?.lines ?? []}

@@ -35,6 +35,21 @@ export type AdRankLine = {
   ad_rank: number;
   slot_position: number | null;
   paid_cpc: number | null;
+  bid_strategy: string;
+  predicted_pcvr: number;
+  strategy_reason: string;
+};
+
+export type SimulationStats = {
+  queries: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend_vnd: number;
+  revenue_vnd: number;
+  ctr_pct: number;
+  cvr_pct: number;
+  roas: number;
 };
 
 export type AuctionResponse = {
@@ -56,13 +71,34 @@ export async function fetchAdvertisers(): Promise<Advertiser[]> {
 
 export async function runAuction(
   query: string,
-  options?: { user_id?: number; num_slots?: number; bid_overrides?: Record<number, number>; qs_overrides?: Record<number, number> },
+  options?: {
+    user_id?: number | null;
+    num_slots?: number;
+    bid_overrides?: Record<number, number>;
+    qs_overrides?: Record<number, number>;
+  },
 ): Promise<AuctionResponse> {
   const r = await fetch(`${API_BASE}/auction/run`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ query, ...options }),
   });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+export async function runSimulation(n: number, seed = 42): Promise<SimulationStats> {
+  const r = await fetch(`${API_BASE}/simulate/run`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ n, seed }),
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+export async function fetchSimulationStats() {
+  const r = await fetch(`${API_BASE}/simulate/stats`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }

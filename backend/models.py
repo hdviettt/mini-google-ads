@@ -70,6 +70,9 @@ class AdRankLine(BaseModel):
     ad_rank: float
     slot_position: int | None = None
     paid_cpc: float | None = None
+    bid_strategy: str = "manual_cpc"
+    predicted_pcvr: float = 0.0
+    strategy_reason: str = ""
 
 
 class AuctionResponse(BaseModel):

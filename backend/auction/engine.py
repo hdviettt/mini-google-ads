@@ -1,10 +1,12 @@
 """End-to-end auction orchestration.
 
-query -> match -> pick best ad -> Quality Score -> Ad Rank -> GSP -> slots -> persist.
+query -> match -> pick best ad -> Quality Score -> bid strategy ->
+Ad Rank -> GSP -> slots -> persist.
 
-Phase 3 swaps matching.exact for matching.dispatcher (broad/phrase).
-Phase 4 swaps the bid lookup to consult bidding/strategy for
-Smart Bidding strategies."""
+Phase 4 added the bid-strategy step. Manual CPC keeps using the
+keyword's max_cpc_bid. Smart Bidding strategies (Maximize Conversions /
+Target ROAS / Target CPA) use the LightGBM pCVR model (or its
+fallback) to decide a bid per impression."""
 from __future__ import annotations
 import json
 import time
@@ -17,6 +19,8 @@ from quality_score.ad_relevance import compute_ad_relevance
 from auction.ad_rank import compute_ad_rank
 from auction.slot_allocation import Bidder, allocate_slots, DEFAULT_RESERVE_AD_RANK
 from narration.template import narrate_auction
+from bidding.features import extract_features
+from bidding.strategy import decide_bid, StrategyDecision
 from models import AdRankLine, AuctionResponse
 
 
@@ -32,11 +36,6 @@ class _AdContext:
 
 
 def _pick_best_ad(conn, campaign_id: int, query: str, keyword_text: str) -> _AdContext | None:
-    """Pick the ad in this campaign whose copy best matches the query.
-
-    Phase 2: ranks ads by ad_relevance score so the auction picks the
-    most relevant headline for the query. This also seeds the
-    QualityScoreBreakdown computed later in the pipeline."""
     rows = conn.execute(
         """
         SELECT id, headlines, descriptions, final_url, lp_load_ms, lp_content_score
@@ -46,7 +45,6 @@ def _pick_best_ad(conn, campaign_id: int, query: str, keyword_text: str) -> _AdC
     ).fetchall()
     if not rows:
         return None
-
     best: _AdContext | None = None
     best_score = -1.0
     for r in rows:
@@ -69,8 +67,6 @@ def _pick_best_ad(conn, campaign_id: int, query: str, keyword_text: str) -> _AdC
 
 
 def _advertiser_quality_signal(advertiser_id: int) -> float:
-    """Map the seed baseline QS into a [-1, 1] bonus passed into pCTR.
-    Lets premium brands have a small persistent CTR uplift."""
     base = baseline_quality_score(advertiser_id)
     return max(-1.0, min(1.0, (base - 5.5) / 4.5))
 
@@ -80,15 +76,10 @@ def _resolve_quality_score(
     breakdown: QualityScoreBreakdown,
     qs_overrides: dict[int, float] | None,
 ) -> tuple[float, QualityScoreBreakdown]:
-    """If user has overridden QS in the playground, scale the breakdown
-    toward that target. Otherwise return the computed QS."""
     if qs_overrides and advertiser_id in qs_overrides:
         target = float(qs_overrides[advertiser_id])
         target = max(1.0, min(10.0, target))
-        if breakdown.quality_score > 0:
-            scale = target / breakdown.quality_score
-        else:
-            scale = 1.0
+        scale = target / breakdown.quality_score if breakdown.quality_score > 0 else 1.0
         return target, QualityScoreBreakdown(
             pctr=breakdown.pctr,
             pctr_score=max(1.0, min(10.0, breakdown.pctr_score * scale)),
@@ -99,10 +90,17 @@ def _resolve_quality_score(
     return breakdown.quality_score, breakdown
 
 
-def _resolve_bid(advertiser_id: int, max_cpc_bid: float, bid_overrides: dict[int, float] | None) -> float:
-    if bid_overrides and advertiser_id in bid_overrides:
-        return float(bid_overrides[advertiser_id])
-    return max_cpc_bid
+def _get_user_features(conn, user_id: int | None) -> tuple[str, str, str]:
+    """Return (intent_level, device, geo). Defaults when user_id is None."""
+    if user_id is None:
+        return ("medium", "mobile", "HCM")
+    row = conn.execute(
+        "SELECT intent_level, device, geo FROM users WHERE id = %s",
+        (user_id,),
+    ).fetchone()
+    if not row:
+        return ("medium", "mobile", "HCM")
+    return (row[0], row[1], row[2])
 
 
 def run_auction(
@@ -130,6 +128,8 @@ def run_auction(
             (query_id,),
         ).fetchone()[0]
 
+    intent_level, device, geo = _get_user_features(conn, user_id)
+
     bidders: list[Bidder] = []
     line_meta: list[dict] = []
 
@@ -149,7 +149,34 @@ def run_auction(
             advertiser_quality=_advertiser_quality_signal(m["advertiser_id"]),
         )
         qs, breakdown = _resolve_quality_score(m["advertiser_id"], breakdown, qs_overrides)
-        bid = _resolve_bid(m["advertiser_id"], m["max_cpc_bid"], bid_overrides)
+
+        # Bid: explicit override wins. Otherwise consult the strategy.
+        if bid_overrides and m["advertiser_id"] in bid_overrides:
+            bid = float(bid_overrides[m["advertiser_id"]])
+            strategy_decision: StrategyDecision | None = None
+        else:
+            feature_row = extract_features(
+                quality_score=qs,
+                pctr=breakdown.pctr,
+                ad_relevance=breakdown.ad_relevance,
+                lp_experience=breakdown.lp_experience,
+                slot_position=0,  # at bid time we assume best slot
+                match_type=m["match_type"],
+                intent_level=intent_level,
+                device=device,
+                geo=geo,
+                vertical=m["vertical"],
+            )
+            strategy_decision = decide_bid(
+                bid_strategy=m.get("bid_strategy", "manual_cpc"),
+                max_cpc_bid=m["max_cpc_bid"],
+                target_roas=m.get("target_roas"),
+                target_cpa=m.get("target_cpa"),
+                feature_row=feature_row,
+                vertical=m["vertical"],
+            )
+            bid = strategy_decision.bid
+
         ad_rank = compute_ad_rank(bid, qs)
         key = len(bidders)
         bidders.append(Bidder(key=key, bid=bid, quality_score=qs, ad_rank=ad_rank))
@@ -168,12 +195,12 @@ def run_auction(
             "ad_relevance": breakdown.ad_relevance,
             "lp_experience": breakdown.lp_experience,
             "ad_rank": ad_rank,
+            "bid_strategy": m.get("bid_strategy", "manual_cpc"),
+            "strategy_reason": strategy_decision.reason if strategy_decision else "manual override",
+            "predicted_pcvr": strategy_decision.pcvr if strategy_decision else 0.0,
         })
 
-    if bidders:
-        slot_results = allocate_slots(bidders, num_slots)
-    else:
-        slot_results = []
+    slot_results = allocate_slots(bidders, num_slots) if bidders else []
 
     lines: list[AdRankLine] = []
     for meta, (slot_pos, paid_cpc) in zip(line_meta, slot_results):
@@ -194,6 +221,9 @@ def run_auction(
             ad_rank=meta["ad_rank"],
             slot_position=slot_pos,
             paid_cpc=paid_cpc if slot_pos is not None else None,
+            bid_strategy=meta.get("bid_strategy", "manual_cpc"),
+            predicted_pcvr=meta.get("predicted_pcvr", 0.0),
+            strategy_reason=meta.get("strategy_reason", ""),
         ))
 
     lines.sort(key=lambda l: l.ad_rank, reverse=True)

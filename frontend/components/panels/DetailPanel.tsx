@@ -36,7 +36,11 @@ export function DetailPanel({ line }: Props) {
       </div>
 
       <div style={{ borderTop: "1px solid #2a2a4a", paddingTop: 10 }}>
-        <Row label="Max bid" value={vnd(line.bid)} />
+        <Row label="Bid strategy" value={line.bid_strategy} />
+        {line.bid_strategy !== "manual_cpc" && line.predicted_pcvr > 0 && (
+          <Row label="Predicted CVR" value={`${(line.predicted_pcvr * 100).toFixed(2)}%`} />
+        )}
+        <Row label="Bid (entered)" value={vnd(line.bid)} />
         <Row label="Quality Score" value={`${line.quality_score.toFixed(1)} / 10`} accent />
 
         {(line.pctr > 0 || line.ad_relevance > 0 || line.lp_experience > 0) && (
@@ -82,6 +86,22 @@ export function DetailPanel({ line }: Props) {
           >
             <strong>GSP saving:</strong> bid {vnd(line.bid)}, paid {vnd(line.paid_cpc)} ({savingsPct}% off).
             They only need to beat the next ranker, not their full bid.
+          </div>
+        )}
+        {line.bid_strategy !== "manual_cpc" && line.strategy_reason && (
+          <div
+            style={{
+              marginTop: 10,
+              padding: 10,
+              background: "#1e1b3e",
+              border: "1px solid #6366f133",
+              borderRadius: 6,
+              color: "#a5b4fc",
+              fontSize: 11,
+              lineHeight: 1.5,
+            }}
+          >
+            <strong>Smart Bidding:</strong> {line.strategy_reason}. Bid scaled by predicted conversion probability for this query and user.
           </div>
         )}
       </div>

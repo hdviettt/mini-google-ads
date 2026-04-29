@@ -41,17 +41,17 @@ def narrate_auction(query: str, lines: Iterable[AdRankLine]) -> str:
 
     # Why the top won
     if runner_up and top.bid < runner_up.bid:
-        parts.append(
+        parts.append((
             f'{top.advertiser_name} thang vi tri 1 voi gia bid chi {_vnd(top.bid)} '
             f'(thap hon {runner_up.advertiser_name} bid {_vnd(runner_up.bid)}) '
             f'nho Quality Score {top.quality_score:.1f} cao hon {runner_up.quality_score:.1f}. '
             f'Ad Rank cua ho {int(top.ad_rank):,} > {int(runner_up.ad_rank):,}.'
-        ).replace(",", ".")
+        ).replace(",", "."))
     else:
-        parts.append(
+        parts.append((
             f'{top.advertiser_name} thang vi tri 1 voi Ad Rank {int(top.ad_rank):,} '
-            f'(bid {_vnd(top.bid)} x QS {top.quality_score:.1f}).'.replace(",", ".")
-        )
+            f'(bid {_vnd(top.bid)} x QS {top.quality_score:.1f}).'
+        ).replace(",", "."))
 
     # GSP savings for top winner
     if top.paid_cpc is not None and top.paid_cpc < top.bid:

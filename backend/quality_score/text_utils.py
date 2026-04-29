@@ -1,16 +1,28 @@
 """Lightweight text utilities used by the Quality Score components.
-Vietnamese-friendly: works with or without diacritics, lowercases,
-splits on whitespace + simple punctuation."""
+Vietnamese-friendly: works whether or not the user types with diacritics.
+Tokens are lowercased and stripped of diacritics, so 'váy dự tiệc' and
+'vay du tiec' produce identical token sets."""
 from __future__ import annotations
 import re
+import unicodedata
 
 _TOKEN_RE = re.compile(r"[^\w]+", re.UNICODE)
+
+
+def strip_diacritics(s: str) -> str:
+    """Strip Vietnamese tone marks and diacritics. Also folds đ/Đ → d/D
+    which NFKD does not decompose."""
+    if not s:
+        return s
+    nfkd = unicodedata.normalize("NFKD", s)
+    out = "".join(c for c in nfkd if not unicodedata.combining(c))
+    return out.replace("đ", "d").replace("Đ", "D")
 
 
 def tokenize(s: str) -> list[str]:
     if not s:
         return []
-    parts = _TOKEN_RE.split(s.lower())
+    parts = _TOKEN_RE.split(strip_diacritics(s).lower())
     return [p for p in parts if p]
 
 

@@ -1,6 +1,8 @@
 """Seed 10 advertisers across 3 verticals (apparel, finance, travel)
-with one campaign each, ~50 keywords, and 3 ads. Idempotent: skips if
-data already present."""
+with one campaign each, ~50 keywords, and 3 ads per advertiser.
+Idempotent: skips if data already present. Pass --reset to truncate
+first."""
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -11,53 +13,69 @@ from db import get_connection
 
 
 SEED = [
-    # Apparel
+    # ============================================================
+    # APPAREL
+    # ============================================================
     {
         "name": "BrandX Fashion",
         "vertical": "apparel",
-        "daily_budget": 2500000,
-        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 2500000},
+        "daily_budget": 2_500_000,
+        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 2_500_000},
         "keywords": [
-            ("vay du tiec", "exact", 8000),
-            ("vay du tiec dep", "phrase", 7500),
-            ("vay du tiec sang trong", "phrase", 7000),
-            ("vay du tiec gia re", "exact", 5000),
-            ("vay maxi", "exact", 6500),
-            ("ao thun nu", "exact", 4500),
-            ("ao so mi nu", "exact", 5000),
-            ("quan jeans nu", "phrase", 5500),
-            ("dam cong so", "phrase", 6000),
-            ("dam du tiec", "phrase", 7500),
-            ("thoi trang nu", "broad", 4000),
-            ("quan ao nu cao cap", "broad", 5500),
-            ("vay den nho", "exact", 6800),
-            ("vay co dien", "phrase", 6200),
+            ("váy dự tiệc", "exact", 8000),
+            ("váy dự tiệc đẹp", "phrase", 7500),
+            ("váy dự tiệc sang trọng", "phrase", 7000),
+            ("váy dự tiệc giá rẻ", "exact", 5000),
+            ("váy maxi", "exact", 6500),
+            ("áo thun nữ", "exact", 4500),
+            ("áo sơ mi nữ", "exact", 5000),
+            ("quần jeans nữ", "phrase", 5500),
+            ("đầm công sở", "phrase", 6000),
+            ("đầm dự tiệc", "phrase", 7500),
+            ("thời trang nữ", "broad", 4000),
+            ("quần áo nữ cao cấp", "broad", 5500),
+            ("váy đen nhỏ", "exact", 6800),
+            ("váy cổ điển", "phrase", 6200),
         ],
         "ads": [
             {
-                "headlines": ["BrandX Fashion - Vay Du Tiec Sang Trong",
-                              "Mua 1 Tang 1 Hom Nay",
-                              "Mien Phi Giao Hang Toan Quoc"],
-                "descriptions": ["Bo suu tap vay du tiec moi nhat. Chat lieu cao cap, gia tot.",
-                                 "Doi tra trong 7 ngay. Chinh sach bao hanh ro rang."],
+                "headlines": [
+                    "BrandX Fashion - Váy Dự Tiệc Sang Trọng",
+                    "Mua 1 Tặng 1 Hôm Nay",
+                    "Miễn Phí Giao Hàng Toàn Quốc",
+                ],
+                "descriptions": [
+                    "Bộ sưu tập váy dự tiệc mới nhất. Chất liệu cao cấp, giá tốt.",
+                    "Đổi trả trong 7 ngày. Chính sách bảo hành rõ ràng.",
+                ],
                 "final_url": "https://brandx.vn/vay-du-tiec",
                 "lp_load_ms": 1200,
                 "lp_content_score": 0.85,
             },
             {
-                "headlines": ["Vay Du Tiec Cao Cap", "Giam Den 50% Hom Nay",
-                              "Hang Moi Ve Lien Tuc"],
-                "descriptions": ["Hang chinh hang. Mau ma da dang.",
-                                 "Hotline: 1900-xxxx"],
+                "headlines": [
+                    "Váy Dự Tiệc Cao Cấp",
+                    "Giảm Đến 50% Hôm Nay",
+                    "Hàng Mới Về Liên Tục",
+                ],
+                "descriptions": [
+                    "Hàng chính hãng. Mẫu mã đa dạng.",
+                    "Hotline: 1900-xxxx",
+                ],
                 "final_url": "https://brandx.vn/sale",
                 "lp_load_ms": 1800,
                 "lp_content_score": 0.65,
             },
             {
-                "headlines": ["Thoi Trang Nu BrandX", "Phong Cach Hien Dai",
-                              "Mien Phi Doi Tra"],
-                "descriptions": ["Tu vay maxi den dam cong so.",
-                                 "Lien he 24/7."],
+                "headlines": [
+                    "Thời Trang Nữ BrandX",
+                    "Phong Cách Hiện Đại",
+                    "Miễn Phí Đổi Trả",
+                ],
+                "descriptions": [
+                    "Từ váy maxi đến đầm công sở.",
+                    "Liên hệ 24/7.",
+                ],
                 "final_url": "https://brandx.vn",
                 "lp_load_ms": 1500,
                 "lp_content_score": 0.75,
@@ -67,33 +85,43 @@ SEED = [
     {
         "name": "Coco Style",
         "vertical": "apparel",
-        "daily_budget": 1500000,
-        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 1500000},
+        "daily_budget": 1_500_000,
+        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 1_500_000},
         "keywords": [
-            ("vay du tiec", "exact", 6500),
-            ("vay du tiec gia re", "exact", 6000),
-            ("dam du tiec", "phrase", 6500),
-            ("ao thun nu basic", "exact", 3500),
-            ("set bo nu", "phrase", 5000),
-            ("thoi trang cong so", "broad", 4500),
-            ("vay nu", "broad", 4000),
-            ("dam moi", "phrase", 5500),
+            ("váy dự tiệc", "exact", 6500),
+            ("váy dự tiệc giá rẻ", "exact", 6000),
+            ("đầm dự tiệc", "phrase", 6500),
+            ("áo thun nữ basic", "exact", 3500),
+            ("set bộ nữ", "phrase", 5000),
+            ("thời trang công sở", "broad", 4500),
+            ("váy nữ", "broad", 4000),
+            ("đầm mới", "phrase", 5500),
         ],
         "ads": [
             {
-                "headlines": ["Coco Style - Vay Du Tiec Gia Tot",
-                              "Tu 199K", "Free Ship Toan Quoc"],
-                "descriptions": ["Vay du tiec, dam cong so, set bo nu.",
-                                 "Mua online tien loi."],
+                "headlines": [
+                    "Coco Style - Váy Dự Tiệc Giá Tốt",
+                    "Từ 199K",
+                    "Free Ship Toàn Quốc",
+                ],
+                "descriptions": [
+                    "Váy dự tiệc, đầm công sở, set bộ nữ.",
+                    "Mua online tiện lợi.",
+                ],
                 "final_url": "https://cocostyle.vn",
                 "lp_load_ms": 2200,
                 "lp_content_score": 0.55,
             },
             {
-                "headlines": ["Vay Du Tiec Ngay", "Sale 30%",
-                              "Coco Style Chinh Hang"],
-                "descriptions": ["Hang moi cap nhat moi tuan.",
-                                 "Doi tra 3 ngay."],
+                "headlines": [
+                    "Váy Dự Tiệc Ngay",
+                    "Sale 30%",
+                    "Coco Style Chính Hãng",
+                ],
+                "descriptions": [
+                    "Hàng mới cập nhật mỗi tuần.",
+                    "Đổi trả 3 ngày.",
+                ],
                 "final_url": "https://cocostyle.vn/sale",
                 "lp_load_ms": 1900,
                 "lp_content_score": 0.60,
@@ -103,32 +131,42 @@ SEED = [
     {
         "name": "Luxe Boutique",
         "vertical": "apparel",
-        "daily_budget": 3500000,
-        "campaign": {"bid_strategy": "target_roas", "target_roas": 3.0, "daily_budget": 3500000},
+        "daily_budget": 3_500_000,
+        "campaign": {"bid_strategy": "target_roas", "target_roas": 3.0, "daily_budget": 3_500_000},
         "keywords": [
-            ("vay du tiec sang trong", "phrase", 12000),
-            ("vay du tiec cao cap", "exact", 11000),
-            ("dam du tiec luxury", "exact", 13000),
-            ("thoi trang sang trong", "broad", 8000),
-            ("ao kieu cao cap", "phrase", 9000),
-            ("dam dahab", "exact", 10000),
-            ("vay den sang trong", "phrase", 10500),
+            ("váy dự tiệc sang trọng", "phrase", 12000),
+            ("váy dự tiệc cao cấp", "exact", 11000),
+            ("đầm dạ hội", "exact", 13000),
+            ("thời trang sang trọng", "broad", 8000),
+            ("áo kiểu cao cấp", "phrase", 9000),
+            ("đầm dạ tiệc luxury", "exact", 10000),
+            ("váy đen sang trọng", "phrase", 10500),
         ],
         "ads": [
             {
-                "headlines": ["Luxe Boutique - Sang Trong Tinh Te",
-                              "Designer Collection 2026", "Showroom Quan 1"],
-                "descriptions": ["Thiet ke doc quyen. Chat lieu Italy.",
-                                 "Tu van mien phi tai cua hang."],
+                "headlines": [
+                    "Luxe Boutique - Sang Trọng Tinh Tế",
+                    "Designer Collection 2026",
+                    "Showroom Quận 1",
+                ],
+                "descriptions": [
+                    "Thiết kế độc quyền. Chất liệu Italy.",
+                    "Tư vấn miễn phí tại cửa hàng.",
+                ],
                 "final_url": "https://luxe.vn/collection",
                 "lp_load_ms": 1100,
                 "lp_content_score": 0.92,
             },
             {
-                "headlines": ["Vay Du Tiec Cao Cap", "Designer Made",
-                              "Showroom Sai Gon"],
-                "descriptions": ["Bo suu tap vay du tiec luxury.",
-                                 "Dat lich thu do."],
+                "headlines": [
+                    "Váy Dự Tiệc Cao Cấp",
+                    "Designer Made",
+                    "Showroom Sài Gòn",
+                ],
+                "descriptions": [
+                    "Bộ sưu tập váy dự tiệc luxury.",
+                    "Đặt lịch thử đồ.",
+                ],
                 "final_url": "https://luxe.vn/dresses",
                 "lp_load_ms": 1300,
                 "lp_content_score": 0.88,
@@ -136,37 +174,49 @@ SEED = [
         ],
     },
 
-    # Finance
+    # ============================================================
+    # FINANCE
+    # ============================================================
     {
-        "name": "Tien Vay Nhanh",
+        "name": "Tiền Vay Nhanh",
         "vertical": "finance",
-        "daily_budget": 5000000,
-        "campaign": {"bid_strategy": "target_cpa", "target_cpa": 250000, "daily_budget": 5000000},
+        "daily_budget": 5_000_000,
+        "campaign": {"bid_strategy": "target_cpa", "target_cpa": 250_000, "daily_budget": 5_000_000},
         "keywords": [
-            ("vay tien online", "exact", 18000),
-            ("vay tien nhanh", "exact", 17000),
-            ("vay tien khong the chap", "phrase", 19000),
-            ("vay tieu dung", "phrase", 15000),
-            ("app vay tien", "exact", 16000),
-            ("vay tien lai suat thap", "phrase", 17500),
+            ("vay tiền online", "exact", 18000),
+            ("vay tiền nhanh", "exact", 17000),
+            ("vay tiền không thế chấp", "phrase", 19000),
+            ("vay tiêu dùng", "phrase", 15000),
+            ("app vay tiền", "exact", 16000),
+            ("vay tiền lãi suất thấp", "phrase", 17500),
             ("vay 24h", "exact", 14000),
-            ("dich vu vay tien", "broad", 12000),
+            ("dịch vụ vay tiền", "broad", 12000),
         ],
         "ads": [
             {
-                "headlines": ["Vay Tien Online - Duyet 30 Phut",
-                              "Khong Can The Chap", "Lai Suat Tu 0.5%/Thang"],
-                "descriptions": ["Han muc len den 100 trieu. Thu tuc don gian.",
-                                 "Giai ngan trong ngay."],
+                "headlines": [
+                    "Vay Tiền Online - Duyệt 30 Phút",
+                    "Không Cần Thế Chấp",
+                    "Lãi Suất Từ 0.5%/Tháng",
+                ],
+                "descriptions": [
+                    "Hạn mức lên đến 100 triệu. Thủ tục đơn giản.",
+                    "Giải ngân trong ngày.",
+                ],
                 "final_url": "https://vaynhanh.vn/dang-ky",
                 "lp_load_ms": 1400,
                 "lp_content_score": 0.78,
             },
             {
-                "headlines": ["App Vay Tien Uy Tin", "Duyet Trong 30 Phut",
-                              "Khong Can Giay To"],
-                "descriptions": ["Tai app va dang ky ngay.",
-                                 "Ho tro 24/7."],
+                "headlines": [
+                    "App Vay Tiền Uy Tín",
+                    "Duyệt Trong 30 Phút",
+                    "Không Cần Giấy Tờ",
+                ],
+                "descriptions": [
+                    "Tải app và đăng ký ngay.",
+                    "Hỗ trợ 24/7.",
+                ],
                 "final_url": "https://vaynhanh.vn/app",
                 "lp_load_ms": 1600,
                 "lp_content_score": 0.70,
@@ -176,31 +226,41 @@ SEED = [
     {
         "name": "Smart Loans",
         "vertical": "finance",
-        "daily_budget": 4000000,
-        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 4000000},
+        "daily_budget": 4_000_000,
+        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 4_000_000},
         "keywords": [
-            ("vay tien online", "exact", 16000),
-            ("vay tieu dung", "phrase", 14000),
-            ("vay the tin dung", "exact", 15000),
-            ("dao no the tin dung", "phrase", 13000),
-            ("vay khong chung minh thu nhap", "phrase", 17000),
+            ("vay tiền online", "exact", 16000),
+            ("vay tiêu dùng", "phrase", 14000),
+            ("vay thẻ tín dụng", "exact", 15000),
+            ("đáo nợ thẻ tín dụng", "phrase", 13000),
+            ("vay không chứng minh thu nhập", "phrase", 17000),
             ("vay nhanh online", "broad", 12000),
         ],
         "ads": [
             {
-                "headlines": ["Smart Loans - Giai Phap Tai Chinh",
-                              "Lai Suat Canh Tranh", "Duyet Truc Tuyen"],
-                "descriptions": ["Vay tieu dung, vay the tin dung.",
-                                 "Tu van mien phi."],
+                "headlines": [
+                    "Smart Loans - Giải Pháp Tài Chính",
+                    "Lãi Suất Cạnh Tranh",
+                    "Duyệt Trực Tuyến",
+                ],
+                "descriptions": [
+                    "Vay tiêu dùng, vay thẻ tín dụng.",
+                    "Tư vấn miễn phí.",
+                ],
                 "final_url": "https://smartloans.vn",
                 "lp_load_ms": 2100,
                 "lp_content_score": 0.62,
             },
             {
-                "headlines": ["Vay Tien Truc Tuyen", "Han Muc Cao",
-                              "Smart Loans Dien Tu"],
-                "descriptions": ["Dang ky online 5 phut.",
-                                 "Giai ngan nhanh."],
+                "headlines": [
+                    "Vay Tiền Trực Tuyến",
+                    "Hạn Mức Cao",
+                    "Smart Loans Điện Tử",
+                ],
+                "descriptions": [
+                    "Đăng ký online 5 phút.",
+                    "Giải ngân nhanh.",
+                ],
                 "final_url": "https://smartloans.vn/dang-ky",
                 "lp_load_ms": 1800,
                 "lp_content_score": 0.68,
@@ -208,24 +268,29 @@ SEED = [
         ],
     },
     {
-        "name": "Tin Tin Capital",
+        "name": "Tín Tín Capital",
         "vertical": "finance",
-        "daily_budget": 6000000,
-        "campaign": {"bid_strategy": "target_roas", "target_roas": 4.0, "daily_budget": 6000000},
+        "daily_budget": 6_000_000,
+        "campaign": {"bid_strategy": "target_roas", "target_roas": 4.0, "daily_budget": 6_000_000},
         "keywords": [
-            ("vay tien online uy tin", "phrase", 22000),
-            ("vay the chap so do", "exact", 25000),
-            ("vay mua nha", "exact", 28000),
+            ("vay tiền online uy tín", "phrase", 22000),
+            ("vay thế chấp sổ đỏ", "exact", 25000),
+            ("vay mua nhà", "exact", 28000),
             ("vay mua xe", "exact", 24000),
-            ("dich vu tai chinh chuyen nghiep", "broad", 18000),
-            ("vay vai ti", "phrase", 26000),
+            ("dịch vụ tài chính chuyên nghiệp", "broad", 18000),
+            ("vay vài tỉ", "phrase", 26000),
         ],
         "ads": [
             {
-                "headlines": ["Tin Tin Capital - Dong Hanh Tai Chinh",
-                              "Chuyen Nghiep Va Uy Tin", "20 Nam Kinh Nghiem"],
-                "descriptions": ["Vay the chap, vay tin chap, vay mua nha.",
-                                 "Tu van 1-1 cung chuyen vien."],
+                "headlines": [
+                    "Tín Tín Capital - Đồng Hành Tài Chính",
+                    "Chuyên Nghiệp Và Uy Tín",
+                    "20 Năm Kinh Nghiệm",
+                ],
+                "descriptions": [
+                    "Vay thế chấp, vay tín chấp, vay mua nhà.",
+                    "Tư vấn 1-1 cùng chuyên viên.",
+                ],
                 "final_url": "https://tintincapital.vn",
                 "lp_load_ms": 1000,
                 "lp_content_score": 0.95,
@@ -233,37 +298,49 @@ SEED = [
         ],
     },
 
-    # Travel
+    # ============================================================
+    # TRAVEL
+    # ============================================================
     {
         "name": "Sky Travel",
         "vertical": "travel",
-        "daily_budget": 3000000,
-        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 3000000},
+        "daily_budget": 3_000_000,
+        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 3_000_000},
         "keywords": [
-            ("ve may bay gia re", "exact", 9000),
-            ("ve may bay khuyen mai", "phrase", 8500),
-            ("dat ve may bay", "exact", 8000),
-            ("ve may bay di da nang", "phrase", 7500),
-            ("ve may bay tet 2027", "phrase", 11000),
-            ("dat phong khach san", "exact", 7000),
-            ("tour du lich", "broad", 6500),
-            ("du lich da nang", "phrase", 7200),
+            ("vé máy bay giá rẻ", "exact", 9000),
+            ("vé máy bay khuyến mại", "phrase", 8500),
+            ("đặt vé máy bay", "exact", 8000),
+            ("vé máy bay đi đà nẵng", "phrase", 7500),
+            ("vé máy bay tết 2027", "phrase", 11000),
+            ("đặt phòng khách sạn", "exact", 7000),
+            ("tour du lịch", "broad", 6500),
+            ("du lịch đà nẵng", "phrase", 7200),
         ],
         "ads": [
             {
-                "headlines": ["Sky Travel - Ve May Bay Gia Re",
-                              "Giam 30% Tat Ca Hang", "Dat Online Trong 2 Phut"],
-                "descriptions": ["Ve may bay tu Vietjet, Bamboo, Vietnam Airlines.",
-                                 "Hoan tien neu re hon."],
+                "headlines": [
+                    "Sky Travel - Vé Máy Bay Giá Rẻ",
+                    "Giảm 30% Tất Cả Hãng",
+                    "Đặt Online Trong 2 Phút",
+                ],
+                "descriptions": [
+                    "Vé máy bay từ Vietjet, Bamboo, Vietnam Airlines.",
+                    "Hoàn tiền nếu rẻ hơn.",
+                ],
                 "final_url": "https://skytravel.vn",
                 "lp_load_ms": 1500,
                 "lp_content_score": 0.80,
             },
             {
-                "headlines": ["Tour Du Lich Tron Goi", "Khach San 4-5 Sao",
-                              "Sky Travel Tin Cay"],
-                "descriptions": ["Tu Sai Gon di moi noi.",
-                                 "Dat ngay nhan ma giam 200K."],
+                "headlines": [
+                    "Tour Du Lịch Trọn Gói",
+                    "Khách Sạn 4-5 Sao",
+                    "Sky Travel Tin Cậy",
+                ],
+                "descriptions": [
+                    "Từ Sài Gòn đi mọi nơi.",
+                    "Đặt ngay nhận mã giảm 200K.",
+                ],
                 "final_url": "https://skytravel.vn/tour",
                 "lp_load_ms": 1700,
                 "lp_content_score": 0.72,
@@ -273,22 +350,27 @@ SEED = [
     {
         "name": "Booking VN",
         "vertical": "travel",
-        "daily_budget": 2000000,
-        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 2000000},
+        "daily_budget": 2_000_000,
+        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 2_000_000},
         "keywords": [
-            ("dat phong khach san", "exact", 8500),
-            ("khach san gia re", "phrase", 7000),
-            ("khach san da nang", "phrase", 7500),
+            ("đặt phòng khách sạn", "exact", 8500),
+            ("khách sạn giá rẻ", "phrase", 7000),
+            ("khách sạn đà nẵng", "phrase", 7500),
             ("homestay", "exact", 5500),
-            ("resort phu quoc", "exact", 9500),
-            ("khach san 5 sao", "broad", 8000),
+            ("resort phú quốc", "exact", 9500),
+            ("khách sạn 5 sao", "broad", 8000),
         ],
         "ads": [
             {
-                "headlines": ["Booking VN - Khach San Gia Tot",
-                              "Hon 50000 Khach San", "Mien Phi Huy Phong"],
-                "descriptions": ["So sanh gia tu nhieu nha cung cap.",
-                                 "Dat truoc tra sau."],
+                "headlines": [
+                    "Booking VN - Khách Sạn Giá Tốt",
+                    "Hơn 50000 Khách Sạn",
+                    "Miễn Phí Hủy Phòng",
+                ],
+                "descriptions": [
+                    "So sánh giá từ nhiều nhà cung cấp.",
+                    "Đặt trước trả sau.",
+                ],
                 "final_url": "https://bookingvn.vn",
                 "lp_load_ms": 1400,
                 "lp_content_score": 0.75,
@@ -298,22 +380,27 @@ SEED = [
     {
         "name": "Mua Tour",
         "vertical": "travel",
-        "daily_budget": 1800000,
-        "campaign": {"bid_strategy": "maximize_conversions", "daily_budget": 1800000},
+        "daily_budget": 1_800_000,
+        "campaign": {"bid_strategy": "maximize_conversions", "daily_budget": 1_800_000},
         "keywords": [
-            ("tour du lich gia re", "phrase", 6500),
-            ("tour da lat", "exact", 7000),
-            ("tour phu quoc", "exact", 8500),
-            ("tour mien tay", "exact", 6000),
-            ("du lich gia dinh", "phrase", 5500),
-            ("tour du lich tron goi", "broad", 5000),
+            ("tour du lịch giá rẻ", "phrase", 6500),
+            ("tour đà lạt", "exact", 7000),
+            ("tour phú quốc", "exact", 8500),
+            ("tour miền tây", "exact", 6000),
+            ("du lịch gia đình", "phrase", 5500),
+            ("tour du lịch trọn gói", "broad", 5000),
         ],
         "ads": [
             {
-                "headlines": ["Mua Tour - Tour Du Lich Gia Re",
-                              "Tron Goi - An Ngu Tat Ca", "Dat Som Giam Them"],
-                "descriptions": ["Tour Phu Quoc, Da Lat, Mien Tay.",
-                                 "Hotline 1900-xxxx."],
+                "headlines": [
+                    "Mua Tour - Tour Du Lịch Giá Rẻ",
+                    "Trọn Gói - Ăn Ngủ Tất Cả",
+                    "Đặt Sớm Giảm Thêm",
+                ],
+                "descriptions": [
+                    "Tour Phú Quốc, Đà Lạt, Miền Tây.",
+                    "Hotline 1900-xxxx.",
+                ],
                 "final_url": "https://muatour.vn",
                 "lp_load_ms": 1900,
                 "lp_content_score": 0.65,
@@ -323,20 +410,25 @@ SEED = [
     {
         "name": "VN Hotels Direct",
         "vertical": "travel",
-        "daily_budget": 1200000,
-        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 1200000},
+        "daily_budget": 1_200_000,
+        "campaign": {"bid_strategy": "manual_cpc", "daily_budget": 1_200_000},
         "keywords": [
-            ("dat phong khach san", "exact", 5500),
-            ("khach san gan trung tam", "phrase", 5000),
-            ("khach san 3 sao", "exact", 4500),
-            ("homestay gia re", "phrase", 4000),
+            ("đặt phòng khách sạn", "exact", 5500),
+            ("khách sạn gần trung tâm", "phrase", 5000),
+            ("khách sạn 3 sao", "exact", 4500),
+            ("homestay giá rẻ", "phrase", 4000),
         ],
         "ads": [
             {
-                "headlines": ["VN Hotels Direct", "Dat Phong Truc Tiep",
-                              "Khong Phi Hoa Hong"],
-                "descriptions": ["Lien lac truc tiep voi khach san.",
-                                 "Gia goc khong tang."],
+                "headlines": [
+                    "VN Hotels Direct",
+                    "Đặt Phòng Trực Tiếp",
+                    "Không Phí Hoa Hồng",
+                ],
+                "descriptions": [
+                    "Liên lạc trực tiếp với khách sạn.",
+                    "Giá gốc không tăng.",
+                ],
                 "final_url": "https://vnhotelsdirect.vn",
                 "lp_load_ms": 2400,
                 "lp_content_score": 0.50,
@@ -351,10 +443,20 @@ def already_seeded(conn) -> bool:
     return n > 0
 
 
+def reset(conn) -> None:
+    """Truncate event tables + advertiser graph. Cascades through FK chain."""
+    conn.execute(
+        "TRUNCATE conversions, clicks, impressions, ad_rank_results, "
+        "auctions, queries, ads, keywords, campaigns, advertisers RESTART IDENTITY CASCADE"
+    )
+    conn.commit()
+    print("reset existing seed data")
+
+
 def seed():
     with get_connection() as conn:
         if already_seeded(conn):
-            print("advertisers table already populated, skipping")
+            print("advertisers table already populated, skipping (use --reset to re-seed)")
             return
 
         for adv in SEED:
@@ -393,8 +495,8 @@ def seed():
                     """,
                     (
                         campaign_id,
-                        json.dumps(a["headlines"]),
-                        json.dumps(a["descriptions"]),
+                        json.dumps(a["headlines"], ensure_ascii=False),
+                        json.dumps(a["descriptions"], ensure_ascii=False),
                         a["final_url"],
                         a["lp_load_ms"],
                         a["lp_content_score"],
@@ -405,4 +507,11 @@ def seed():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--reset", action="store_true", help="truncate existing data first")
+    args = parser.parse_args()
+
+    if args.reset:
+        with get_connection() as conn:
+            reset(conn)
     seed()

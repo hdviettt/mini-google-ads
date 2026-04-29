@@ -13,6 +13,7 @@ import { BusinessSide } from "@/components/BusinessSide";
 import { AlgorithmSide } from "@/components/AlgorithmSide";
 import { FlowDiagram } from "@/components/FlowDiagram";
 import { LiveStats } from "@/components/LiveStats";
+import { ControlPanel } from "@/components/ControlPanel";
 
 const SAMPLE_QUERIES = [
   "váy dự tiệc",
@@ -43,6 +44,7 @@ export default function Home() {
 
   const [selectedAdvertiserId, setSelectedAdvertiserId] = useState<number | null>(null);
   const [simulatedUserId, setSimulatedUserId] = useState<number | null>(null);
+  const [numSlots, setNumSlots] = useState(4);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -51,13 +53,13 @@ export default function Home() {
   }, []);
 
   const doRun = useCallback(
-    async (q: string, bids: Record<number, number>, qs: Record<number, number>, userId: number | null) => {
+    async (q: string, bids: Record<number, number>, qs: Record<number, number>, userId: number | null, slots: number) => {
       if (!q.trim()) return;
       setLoading(true);
       setError(null);
       try {
         const resp = await runAuction(q, {
-          num_slots: 4,
+          num_slots: slots,
           bid_overrides: bids,
           qs_overrides: qs,
           user_id: userId,
@@ -73,7 +75,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    doRun(query, {}, {}, simulatedUserId);
+    doRun(query, {}, {}, simulatedUserId, numSlots);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -81,19 +83,19 @@ export default function Home() {
     if (!auction) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      doRun(query, bidOverrides, qsOverrides, simulatedUserId);
+      doRun(query, bidOverrides, qsOverrides, simulatedUserId, numSlots);
     }, 220);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bidOverrides, qsOverrides, simulatedUserId]);
+  }, [bidOverrides, qsOverrides, simulatedUserId, numSlots]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setBidOverrides({});
     setQsOverrides({});
-    doRun(query, {}, {}, simulatedUserId);
+    doRun(query, {}, {}, simulatedUserId, numSlots);
   };
 
   const winners = useMemo(
@@ -142,7 +144,8 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-[920px] mx-auto px-5 pb-24">
+      <main className="max-w-[1200px] mx-auto px-5 pb-24 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+        <div>
         <div className="pt-8">
           <FlowDiagram />
         </div>
@@ -159,50 +162,8 @@ export default function Home() {
             <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
               Đây là toàn bộ trải nghiệm của user. Họ gõ truy vấn vào Google, thấy kết quả
               "Sponsored" ở trên cùng. Họ không biết Quality Score, không biết GSP. Họ chỉ
-              thấy quảng cáo và quyết định click.
+              thấy quảng cáo và quyết định click. Mọi thông số bên phải để bạn nghịch.
             </p>
-          </div>
-
-          {/* Sample queries + intent above the SERP frame so the frame
-             stays visually pure (just like Google does not show your
-             history above its SERP). */}
-          <div className="mb-3 flex flex-wrap gap-2 items-center">
-            <span className="text-[11px] text-[var(--text-dim)]">Try:</span>
-            {SAMPLE_QUERIES.map((q) => (
-              <button
-                key={q}
-                onClick={() => {
-                  setQuery(q);
-                  setBidOverrides({});
-                  setQsOverrides({});
-                  doRun(q, {}, {}, simulatedUserId);
-                }}
-                className={`text-[11.5px] px-2.5 py-1 rounded-full border transition-colors ${
-                  q === query
-                    ? "border-[var(--text)] bg-[var(--bg-elevated)] text-[var(--text)]"
-                    : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text)]"
-                }`}
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-          <div className="mb-4 flex flex-wrap gap-2 items-center">
-            <span className="text-[11px] text-[var(--text-dim)]">User intent:</span>
-            {USER_PRESETS.map((u) => (
-              <button
-                key={u.label}
-                onClick={() => setSimulatedUserId(u.id)}
-                title={u.hint}
-                className={`text-[11.5px] px-2.5 py-1 rounded-full border transition-colors ${
-                  simulatedUserId === u.id
-                    ? "border-[var(--text)] bg-[var(--bg-elevated)] text-[var(--text)]"
-                    : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text)]"
-                }`}
-              >
-                {u.label}
-              </button>
-            ))}
           </div>
 
           {/* Google-fidelity SERP wrapped in browser chrome. Theme-aware
@@ -377,15 +338,6 @@ export default function Home() {
             lines={auction.lines}
             selectedAdvertiserId={selectedAdvertiserId}
             onSelectAdvertiser={setSelectedAdvertiserId}
-            bidOverrides={bidOverrides}
-            qsOverrides={qsOverrides}
-            onBidChange={(id, v) => setBidOverrides((p) => ({ ...p, [id]: v }))}
-            onQsChange={(id, v) => setQsOverrides((p) => ({ ...p, [id]: v }))}
-            onResetOverrides={() => {
-              setBidOverrides({});
-              setQsOverrides({});
-              doRun(query, {}, {}, simulatedUserId);
-            }}
           />
         )}
 
@@ -399,6 +351,37 @@ export default function Home() {
             : "loading…"}
           {advertisersError && <span className="text-[var(--bad)]"> · API error: {advertisersError}</span>}
         </footer>
+        </div>
+
+        {/* Sticky control panel — knobs always visible while you scroll
+           through User / Business / Algorithm. This is what makes it
+           feel like a sandbox, not a tutorial. */}
+        <div className="hidden lg:block pt-8">
+          <ControlPanel
+            query={query}
+            onQueryChange={setQuery}
+            onSubmit={() => {
+              setBidOverrides({});
+              setQsOverrides({});
+              doRun(query, {}, {}, simulatedUserId, numSlots);
+            }}
+            loading={loading}
+            simulatedUserId={simulatedUserId}
+            onUserChange={setSimulatedUserId}
+            numSlots={numSlots}
+            onNumSlotsChange={setNumSlots}
+            lines={auction?.lines ?? []}
+            bidOverrides={bidOverrides}
+            qsOverrides={qsOverrides}
+            onBidChange={(id, v) => setBidOverrides((p) => ({ ...p, [id]: v }))}
+            onQsChange={(id, v) => setQsOverrides((p) => ({ ...p, [id]: v }))}
+            onReset={() => {
+              setBidOverrides({});
+              setQsOverrides({});
+              doRun(query, {}, {}, simulatedUserId, numSlots);
+            }}
+          />
+        </div>
       </main>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import type { AdRankLine } from "@/lib/api";
-import { Playground } from "@/components/playground/Playground";
 import { PipelineCanvas } from "@/components/canvas/PipelineCanvas";
 import { SimulationPanel } from "@/components/panels/SimulationPanel";
 import { AdRankRace } from "@/components/charts/AdRankRace";
@@ -11,22 +10,12 @@ type Props = {
   lines: AdRankLine[];
   selectedAdvertiserId: number | null;
   onSelectAdvertiser: (id: number | null) => void;
-  bidOverrides: Record<number, number>;
-  qsOverrides: Record<number, number>;
-  onBidChange: (id: number, v: number) => void;
-  onQsChange: (id: number, v: number) => void;
-  onResetOverrides: () => void;
 };
 
 export function AlgorithmSide({
   lines,
   selectedAdvertiserId,
   onSelectAdvertiser,
-  bidOverrides,
-  qsOverrides,
-  onBidChange,
-  onQsChange,
-  onResetOverrides,
 }: Props) {
   const [showCanvas, setShowCanvas] = useState(false);
   const [showSimulation, setShowSimulation] = useState(false);
@@ -75,16 +64,6 @@ export function AlgorithmSide({
           </div>
         </div>
       )}
-
-      {/* Playground (always visible in algorithm view) */}
-      <Playground
-        lines={lines}
-        bidOverrides={bidOverrides}
-        qsOverrides={qsOverrides}
-        onBidChange={onBidChange}
-        onQsChange={onQsChange}
-        onReset={onResetOverrides}
-      />
 
       {/* Pipeline canvas (collapsible) */}
       <div className="mt-4">

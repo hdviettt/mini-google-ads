@@ -42,6 +42,12 @@ try:
 except Exception as e:
     print(f"simulation router not loaded: {e}", file=sys.stderr)
 
+try:
+    from api.explore import router as explore_router
+    app.include_router(explore_router)
+except Exception as e:
+    print(f"explore router not loaded: {e}", file=sys.stderr)
+
 
 @app.on_event("startup")
 def startup() -> None:

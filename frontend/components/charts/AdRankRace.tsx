@@ -1,4 +1,5 @@
 "use client";
+import { useMemo } from "react";
 import type { AdRankLine } from "@/lib/api";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
@@ -11,6 +12,14 @@ type Props = {
 };
 
 export function AdRankRace({ lines, numSlots, selectedAdvertiserId, onSelect }: Props) {
+  // Build a stable key for "this auction shape" so the bar-grow animation
+  // restarts cleanly when a new query lands. We hash the sorted advertiser
+  // ids so re-renders for the same auction don't re-trigger animation.
+  const animKey = useMemo(
+    () => lines.map((l) => `${l.advertiser_id}:${Math.round(l.ad_rank)}`).join("|"),
+    [lines],
+  );
+
   if (lines.length === 0) return null;
 
   const sorted = [...lines].sort((a, b) => b.ad_rank - a.ad_rank);
@@ -36,11 +45,11 @@ export function AdRankRace({ lines, numSlots, selectedAdvertiserId, onSelect }: 
         </div>
       </div>
 
-      <div className="space-y-2.5 relative">
-        {/* Slot cutoff line */}
+      <div className="space-y-2.5 relative" key={animKey}>
+        {/* Slot cutoff line — slides in after the bars finish growing */}
         {cutoffPct > 0 && cutoffPct < 100 && (
           <div
-            className="absolute top-0 bottom-0 pointer-events-none"
+            className="absolute top-0 bottom-0 pointer-events-none cutoff-slide"
             style={{
               left: `calc(${100 - cutoffPct}% + 0px)`,
               borderLeft: "1.5px dashed var(--border-hover)",
@@ -56,14 +65,15 @@ export function AdRankRace({ lines, numSlots, selectedAdvertiserId, onSelect }: 
           </div>
         )}
 
-        {sorted.map((line) => {
+        {sorted.map((line, idx) => {
           const winning = line.slot_position !== null && line.slot_position !== undefined;
           const pct = (line.ad_rank / max) * 100;
-          const bidPortion = line.bid * 1; // raw bid contribution
-          const qsBoost = line.ad_rank - line.bid; // contribution from QS multiplier
+          const bidPortion = line.bid * 1;
+          const qsBoost = line.ad_rank - line.bid;
           const bidPct = (bidPortion / max) * 100;
           const qsPct = (qsBoost / max) * 100;
           const selected = selectedAdvertiserId === line.advertiser_id;
+          const delayMs = idx * 80;
 
           return (
             <button
@@ -71,30 +81,35 @@ export function AdRankRace({ lines, numSlots, selectedAdvertiserId, onSelect }: 
               onClick={() => onSelect(selected ? null : line.advertiser_id)}
               className={`w-full text-left grid grid-cols-[140px_1fr_140px] items-center gap-3 p-2 rounded-lg transition-colors ${
                 selected ? "bg-[var(--bg-elevated)]" : "hover:bg-[var(--bg-elevated)]"
-              }`}
+              } ${winning && idx === 0 ? "winner-pulse-1" : ""}`}
+              style={{ animationDelay: `${delayMs}ms` }}
             >
               <div className="text-[12px] font-medium text-[var(--text)] truncate">
                 {line.advertiser_name}
               </div>
 
               <div className="relative h-7 rounded-md overflow-hidden" style={{ background: "var(--score-bar-bg)" }}>
-                {/* Bid portion */}
+                {/* Bid contribution — grows from 0 staggered */}
                 <div
-                  className="absolute inset-y-0 left-0 transition-all duration-500"
+                  className="absolute inset-y-0 left-0 bar-grow"
                   style={{
                     width: `${bidPct}%`,
                     background: winning ? "var(--slot-2-fg)" : "var(--text-dim)",
                     opacity: winning ? 0.55 : 0.35,
+                    animationDelay: `${delayMs}ms`,
+                    transition: "width 500ms cubic-bezier(0.2, 0.8, 0.2, 1)",
                   }}
                 />
-                {/* QS boost */}
+                {/* QS boost — also grows staggered, slightly later for layered feel */}
                 <div
-                  className="absolute inset-y-0 transition-all duration-500"
+                  className="absolute inset-y-0 bar-grow"
                   style={{
                     left: `${bidPct}%`,
                     width: `${qsPct}%`,
                     background: winning ? "var(--ok)" : "var(--text-dim)",
                     opacity: winning ? 0.85 : 0.5,
+                    animationDelay: `${delayMs + 120}ms`,
+                    transition: "width 500ms cubic-bezier(0.2, 0.8, 0.2, 1)",
                   }}
                 />
                 {/* Slot label */}

@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState, useMemo } from "react";
 import type { AdRankLine } from "@/lib/api";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("vi-VN");
@@ -11,6 +12,24 @@ export function GspChart({ lines }: Props) {
   const winners = lines
     .filter((l) => l.slot_position !== null && l.slot_position !== undefined)
     .sort((a, b) => (a.slot_position ?? 0) - (b.slot_position ?? 0));
+
+  const animKey = useMemo(
+    () =>
+      winners
+        .map((l) => `${l.advertiser_id}:${Math.round(l.paid_cpc ?? 0)}`)
+        .join("|"),
+    [winners],
+  );
+
+  // The paid bar overlays the full-bid bar. On each new auction we play
+  // it: start at full-bid width, then shrink down to the actual paid CPC.
+  // This makes "GSP saving" feel earned, not just a final number.
+  const [paidPlaying, setPaidPlaying] = useState(false);
+  useEffect(() => {
+    setPaidPlaying(false);
+    const t = setTimeout(() => setPaidPlaying(true), 50);
+    return () => clearTimeout(t);
+  }, [animKey]);
 
   if (winners.length === 0) return null;
 
@@ -57,22 +76,24 @@ export function GspChart({ lines }: Props) {
               </div>
 
               <div className="relative h-7 rounded-md overflow-hidden" style={{ background: "var(--score-bar-bg)" }}>
-                {/* Full bid (background, lighter) */}
+                {/* Full bid (background, lighter) — grows from 0 first */}
                 <div
-                  className="absolute inset-y-0 left-0 transition-all duration-500"
+                  className="absolute inset-y-0 left-0 bar-grow"
                   style={{
                     width: `${bidPct}%`,
                     background: "var(--text-dim)",
                     opacity: 0.25,
                   }}
                 />
-                {/* Paid (foreground, accent) */}
+                {/* Paid (foreground, accent) — starts at full bid width,
+                   then shrinks to actual paid_cpc, dramatizing GSP. */}
                 <div
-                  className="absolute inset-y-0 left-0 transition-all duration-500"
+                  className="absolute inset-y-0 left-0"
                   style={{
-                    width: `${paidPct}%`,
+                    width: `${paidPlaying ? paidPct : bidPct}%`,
                     background: "var(--ok)",
                     opacity: 0.85,
+                    transition: "width 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 700ms",
                   }}
                 />
                 {/* Savings annotation in the gap */}

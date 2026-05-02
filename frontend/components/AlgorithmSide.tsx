@@ -1,35 +1,26 @@
 "use client";
 import { useState } from "react";
 import type { AdRankLine } from "@/lib/api";
-import { Playground } from "@/components/playground/Playground";
-import { PipelineCanvas } from "@/components/canvas/PipelineCanvas";
 import { SimulationPanel } from "@/components/panels/SimulationPanel";
 import { AdRankRace } from "@/components/charts/AdRankRace";
 import { GspChart } from "@/components/charts/GspChart";
+import { AuctionPipelineSVG } from "@/components/canvas/AuctionPipelineSVG";
 
 type Props = {
   lines: AdRankLine[];
   selectedAdvertiserId: number | null;
   onSelectAdvertiser: (id: number | null) => void;
-  bidOverrides: Record<number, number>;
-  qsOverrides: Record<number, number>;
-  onBidChange: (id: number, v: number) => void;
-  onQsChange: (id: number, v: number) => void;
-  onResetOverrides: () => void;
+  auctionId: number;
 };
 
 export function AlgorithmSide({
   lines,
   selectedAdvertiserId,
   onSelectAdvertiser,
-  bidOverrides,
-  qsOverrides,
-  onBidChange,
-  onQsChange,
-  onResetOverrides,
+  auctionId,
 }: Props) {
-  const [showCanvas, setShowCanvas] = useState(false);
   const [showSimulation, setShowSimulation] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const winners = lines.filter((l) => l.slot_position !== null && l.slot_position !== undefined);
 
   if (lines.length === 0) return null;
@@ -45,11 +36,21 @@ export function AlgorithmSide({
         </h2>
         <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
           Khi user search, Google chạy một cuộc đấu giá real-time giữa các nhãn hàng đã đăng ký
-          từ khóa khớp. Đây là 4 bước quyết định ai thắng và trả bao nhiêu.
+          từ khóa khớp. Particles chạy dọc edges theo đúng thứ tự thời gian thật.
         </p>
       </div>
 
-      {/* Step 1: Ad Rank race chart */}
+      {/* PIPELINE CANVAS — the centerpiece */}
+      <div className="mb-4">
+        <AuctionPipelineSVG
+          auctionId={auctionId}
+          lines={lines}
+          selectedNodeId={selectedNodeId}
+          onSelectNode={setSelectedNodeId}
+        />
+      </div>
+
+      {/* Ad Rank race chart */}
       <div className="mb-3">
         <AdRankRace
           lines={lines}
@@ -63,7 +64,7 @@ export function AlgorithmSide({
         </div>
       </div>
 
-      {/* Step 2: GSP chart */}
+      {/* GSP chart */}
       {winners.length > 0 && (
         <div className="mb-3">
           <GspChart lines={lines} />
@@ -76,51 +77,13 @@ export function AlgorithmSide({
         </div>
       )}
 
-      {/* Playground (always visible in algorithm view) */}
-      <Playground
-        lines={lines}
-        bidOverrides={bidOverrides}
-        qsOverrides={qsOverrides}
-        onBidChange={onBidChange}
-        onQsChange={onQsChange}
-        onReset={onResetOverrides}
-      />
-
-      {/* Pipeline canvas (collapsible) */}
-      <div className="mt-4">
-        <button
-          onClick={() => setShowCanvas((s) => !s)}
-          className="text-[12.5px] text-[var(--text-muted)] hover:text-[var(--text)] py-2"
-        >
-          {showCanvas ? "▾" : "▸"} {showCanvas ? "Hide" : "Show"} pipeline canvas (advanced)
-        </button>
-        {showCanvas && (
-          <div className="mt-3 rounded-xl border border-[var(--border)] overflow-hidden" style={{ height: 560 }}>
-            <PipelineCanvas
-              auction={{
-                auction_id: 0,
-                query: "",
-                matched_count: lines.length,
-                eligible_count: lines.length,
-                slot_count: winners.length,
-                lines,
-                narration: "",
-                time_ms: 0,
-              }}
-              selectedAdvertiserId={selectedAdvertiserId}
-              onSelectAdvertiser={onSelectAdvertiser}
-            />
-          </div>
-        )}
-      </div>
-
       {/* Simulation (collapsible) */}
-      <div className="mt-2">
+      <div className="mt-4">
         <button
           onClick={() => setShowSimulation((s) => !s)}
           className="text-[12.5px] text-[var(--text-muted)] hover:text-[var(--text)] py-2"
         >
-          {showSimulation ? "▾" : "▸"} {showSimulation ? "Hide" : "Show"} simulation panel (advanced)
+          {showSimulation ? "▾" : "▸"} {showSimulation ? "Hide" : "Show"} simulation panel
         </button>
         {showSimulation && (
           <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)]">

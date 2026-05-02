@@ -62,6 +62,8 @@ class AdRankLine(BaseModel):
     match_type: str
     ad_id: int
     ad_headline: str
+    ad_description: str = ""
+    final_url: str = ""
     bid: float
     quality_score: float
     pctr: float

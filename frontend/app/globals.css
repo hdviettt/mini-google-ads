@@ -36,6 +36,19 @@
   --ok: #1a6b3c;
   --warn: #b8860b;
   --bad: #c0392b;
+
+  /* Google SERP world: light mode mirrors google.com */
+  --g-bg: #ffffff;
+  --g-card-bg: #ffffff;
+  --g-border: #dadce0;
+  --g-text: #202124;
+  --g-meta: #5f6368;
+  --g-snippet: #4d5156;
+  --g-link: #1a0dab;
+  --g-search-shadow: 0 1px 6px rgba(32, 33, 36, 0.06);
+  --g-search-border: #dfe1e5;
+  --g-chrome-bg: #f1f3f4;
+  --g-chrome-text: #5f6368;
 }
 
 [data-theme="dark"] {
@@ -71,6 +84,19 @@
   --ok: #4ade80;
   --warn: #fbbf24;
   --bad: #f87171;
+
+  /* Google SERP world: dark mode mirrors Google's dark search */
+  --g-bg: #202124;
+  --g-card-bg: #303134;
+  --g-border: #3c4043;
+  --g-text: #e8eaed;
+  --g-meta: #9aa0a6;
+  --g-snippet: #bdc1c6;
+  --g-link: #8ab4f8;
+  --g-search-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+  --g-search-border: #5f6368;
+  --g-chrome-bg: #292a2d;
+  --g-chrome-text: #9aa0a6;
 }
 
 html, body {
@@ -98,8 +124,36 @@ html, body {
 
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes grow-from-zero {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes slide-in-from-right {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes winner-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  50%      { box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.25); }
+}
+@keyframes counter-flash {
+  0%   { color: var(--ok); }
+  100% { color: inherit; }
+}
+@keyframes ticker-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
 
 .fade-in { animation: fade-in 0.25s ease-out both; }
+.bar-grow {
+  transform-origin: left center;
+  animation: grow-from-zero 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.cutoff-slide   { animation: slide-in-from-right 0.5s ease-out 0.7s both; }
+.winner-pulse-1 { animation: winner-pulse 1.4s ease-out 0.9s 1; }
+.counter-flash  { animation: counter-flash 0.6s ease-out; }
+.ticker-pulse   { animation: ticker-pulse 1.5s ease-in-out infinite; }
 
 /* React Flow night mode */
 [data-theme="dark"] .react-flow__background { background: var(--bg); }

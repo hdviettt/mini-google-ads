@@ -27,6 +27,8 @@ export type AdRankLine = {
   match_type: string;
   ad_id: number;
   ad_headline: string;
+  ad_description: string;
+  final_url: string;
   bid: number;
   quality_score: number;
   pctr: number;
@@ -99,6 +101,49 @@ export async function runSimulation(n: number, seed = 42): Promise<SimulationSta
 
 export async function fetchSimulationStats() {
   const r = await fetch(`${API_BASE}/simulate/stats`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+export type SystemStats = {
+  advertisers: number;
+  keywords: number;
+  keywords_embedded: number;
+  ads: number;
+  users: number;
+  auctions: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend_vnd: number;
+  revenue_vnd: number;
+  ctr_pct: number;
+  cvr_pct: number;
+  roas: number;
+  model_trained: boolean;
+  feature_importance_top: { feature: string; importance: number }[];
+};
+
+export async function fetchSystemStats(): Promise<SystemStats> {
+  const r = await fetch(`${API_BASE}/explore/system-stats`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+export async function fetchRecentAuctions(limit = 30) {
+  const r = await fetch(`${API_BASE}/explore/recent-auctions?limit=${limit}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+export async function fetchRecentImpressions(limit = 30) {
+  const r = await fetch(`${API_BASE}/explore/recent-impressions?limit=${limit}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+export async function fetchRecentConversions(limit = 30) {
+  const r = await fetch(`${API_BASE}/explore/recent-conversions?limit=${limit}`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
